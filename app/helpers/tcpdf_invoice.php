@@ -7,6 +7,7 @@
 
 require_once __DIR__ . '/../../vendor/autoload.php';
 require_once __DIR__ . '/number_to_words.php';
+require_once __DIR__ . '/vietqr.php';
 
 function generateInvoicePDF(array $invoice, array $items, array $qrPayment = []): void
 {
@@ -195,56 +196,6 @@ function generateInvoicePDF(array $invoice, array $items, array $qrPayment = [])
     </div>';
 
     $pdf->writeHTML($html, true, false, true, false, '');
-
-    // ========== TRANG 2: QR CODE ==========
-    if ($hasQR) {
-        $pdf->AddPage();
-
-        $html2 = '
-        <style>
-            .title-qr { text-align: center; margin-bottom: 15px; }
-            .title-qr h2 { font-size: 14px; font-weight: bold; margin: 0; text-transform: uppercase; }
-            
-            .qr-box { border: 1px dashed #198754; padding: 15px; border-radius: 5px; }
-            .qr-content { width: 100%; }
-            .qr-content td { vertical-align: top; padding: 5px; }
-            
-            .qr-info { font-size: 11px; }
-            .qr-info .row { padding: 3px 0; }
-            .qr-info .label { font-weight: bold; display: inline-block; width: 80px; }
-            .qr-info .value { }
-            
-            .qr-code { text-align: center; padding: 10px; }
-            .qr-code img { width: 180px; height: 180px; }
-            
-            .note-bottom { font-size: 10px; color: #cc0000; font-style: italic; text-align: center; margin-top: 15px; }
-        </style>
-
-        <div class="title-qr">
-            <h2>THANH TOÁN QUA QR CODE</h2>
-        </div>
-
-        <div class="qr-box">
-            <table class="qr-content">
-                <tr>
-                    <td class="qr-code">
-                        <img src="' . htmlspecialchars($qrPayment['qr_image_url']) . '" alt="QR Code" />
-                    </td>
-                    <td class="qr-info">
-                        <div class="row"><span class="label">Ngân hàng:</span> <span class="value">' . htmlspecialchars($qrPayment['bank_id'] ?? '') . '</span></div>
-                        <div class="row"><span class="label">Số TK:</span> <span class="value">' . htmlspecialchars($qrPayment['account_number'] ?? '') . '</span></div>
-                        <div class="row"><span class="label">Chủ TK:</span> <span class="value">' . htmlspecialchars($qrPayment['account_name'] ?? '') . '</span></div>
-                        <div class="row"><span class="label">Số tiền:</span> <span class="value"><strong style="color:#198754">' . $totalFormatted . ' đ</strong></span></div>
-                        <div class="row"><span class="label">Nội dung:</span> <span class="value">' . htmlspecialchars($invoice['invoice_code'] ?? '') . '</span></div>
-                    </td>
-                </tr>
-            </table>
-        </div>
-
-        <div class="note-bottom">* Vui lòng nhập đúng số tiền khi thanh toán liên ngân hàng qua QRCode</div>';
-
-        $pdf->writeHTML($html2, true, false, true, false, '');
-    }
 
     // Xuất PDF
     $filename = 'PhieuThu_' . ($invoice['invoice_code'] ?? date('Ymd')) . '.pdf';
