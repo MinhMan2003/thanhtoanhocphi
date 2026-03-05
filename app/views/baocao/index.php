@@ -19,7 +19,7 @@ $percentPartial = $stats['total_invoices'] > 0 ? round(($stats['partial_count'] 
     <h1>Báo cáo & Thống kê</h1>
     <div style="display:flex; gap:8px;">
         <form method="GET" style="display:flex; gap:8px;">
-            <input type="hidden" name="controller" value="report">
+            <input type="hidden" name="controller" value="baocao">
             <input type="hidden" name="action" value="index">
             <select name="month" class="form__input" style="min-width:60px;" onchange="this.form.submit()">
                 <?php for ($m = 1; $m <= 12; $m++): ?>

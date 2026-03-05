@@ -27,12 +27,13 @@ if ($imported > 0): ?>
 
 <div class="card" style="margin-top:1rem;">
     <form method="get" style="display:flex; gap:8px; align-items:center;">
-        <input type="hidden" name="controller" value="student">
+        <input type="hidden" name="controller" value="hocsinh">
         <input type="hidden" name="action" value="index">
-        <input class="form-control" name="q" placeholder="Tìm theo mã, tên, lớp..." value="<?= htmlspecialchars($q, ENT_QUOTES, 'UTF-8') ?>">
+        <input class="form-control" id="searchInput" name="q" placeholder="Tìm theo mã, tên, lớp..." value="<?= htmlspecialchars($q, ENT_QUOTES, 'UTF-8') ?>">
         <button class="btn btn-secondary" type="submit">Tìm</button>
     </form>
 </div>
+<div id="searchResults" class="search-autocomplete"></div>
 
 <div class="card" style="margin-top:1rem; padding:0;">
     <div style="padding:12px 16px; border-bottom:1px solid #e5e7eb;">
@@ -62,7 +63,7 @@ if ($imported > 0): ?>
                 <?php foreach ($data as $row): ?>
                     <tr>
                         <td><?= (int)$row['id'] ?></td>
-                        <td><?= htmlspecialchars($row['student_code'], ENT_QUOTES, 'UTF-8') ?></td>
+                        <td><?= htmlspecialchars($row['hocsinh_code'], ENT_QUOTES, 'UTF-8') ?></td>
                         <td><?= htmlspecialchars($row['full_name'], ENT_QUOTES, 'UTF-8') ?></td>
                         <td><?= htmlspecialchars((string)($row['grade'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
                         <td><?= htmlspecialchars($row['class'], ENT_QUOTES, 'UTF-8') ?></td>
@@ -70,7 +71,13 @@ if ($imported > 0): ?>
                         <td><?= htmlspecialchars((string)($row['address'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
                         <td><?= htmlspecialchars((string)($row['parent_name'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
                         <td><?= htmlspecialchars((string)($row['parent_phone'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
-                        <td><?= $row['status'] === 'inactive' ? 'Nghỉ' : 'Đang học' ?></td>
+                        <td>
+                            <?php if ($row['status'] === 'inactive'): ?>
+                                <span class="status-badge status-inactive">Nghỉ</span>
+                            <?php else: ?>
+                                <span class="status-badge status-active">Đang học</span>
+                            <?php endif; ?>
+                        </td>
                         <td style="white-space:nowrap; text-align:right;">
                             <a class="btn btn-secondary" href="index.php?controller=hocsinh&action=view&id=<?= (int)$row['id'] ?>">Xem</a>
                             <a class="btn btn-secondary" href="index.php?controller=hocsinh&action=edit&id=<?= (int)$row['id'] ?>">Sửa</a>
@@ -93,3 +100,45 @@ if ($imported > 0): ?>
     </div>
 <?php endif; ?>
 
+<script>
+const searchInput = document.getElementById('searchInput');
+const searchResults = document.getElementById('searchResults');
+let debounceTimer;
+
+searchInput.addEventListener('input', function() {
+    clearTimeout(debounceTimer);
+    const q = this.value.trim();
+
+    if (q.length < 1) {
+        searchResults.classList.remove('show');
+        return;
+    }
+
+    debounceTimer = setTimeout(async function() {
+        try {
+            const response = await fetch(`index.php?controller=hocsinh&action=searchAutocomplete&q=${encodeURIComponent(q)}`);
+            const result = await response.json();            if (result.success && result.data.length > 0) {
+                searchResults.innerHTML = result.data.map(item => `
+                    <div class="search-autocomplete-item" onclick="window.location.href='index.php?controller=hocsinh&action=view&id=${item.id}'">
+                        <div>
+                            <div class="name">${item.full_name} (${item.hocsinh_code})</div>
+                            <div class="code">Lớp ${item.class}${item.grade ? ' - Khối ' + item.grade : ''}</div>
+                        </div>
+                    </div>
+                `).join('');
+                searchResults.classList.add('show');
+            } else {
+                searchResults.classList.remove('show');
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }, 200);
+});
+
+document.addEventListener('click', function(e) {
+    if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+        searchResults.classList.remove('show');
+    }
+});
+</script>

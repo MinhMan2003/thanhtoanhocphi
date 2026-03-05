@@ -167,6 +167,11 @@
             background: #fff3cd;
             color: #856404;
         }
+        .status-cancelled {
+            background: #e2e3e5;
+            color: #383d41;
+            text-decoration: line-through;
+        }
         .amount {
             text-align: right;
             font-weight: 500;
@@ -288,11 +293,13 @@
                                 'paid' => 'status-paid',
                                 'partial' => 'status-partial',
                                 'pending' => 'status-pending',
+                                'cancelled' => 'status-cancelled',
                             ];
                             $statusText = [
                                 'paid' => 'Đã thanh toán',
                                 'partial' => 'Còn nợ',
                                 'pending' => 'Chưa thanh toán',
+                                'cancelled' => 'Đã hủy',
                             ];
                             ?>
                             <span class="status-badge <?= $statusClass[$status] ?? '' ?>">

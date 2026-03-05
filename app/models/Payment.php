@@ -94,8 +94,10 @@ class Payment
 
         // Search query
         if ($q !== '') {
-            $where[] = "(p.trans_id LIKE :q OR p.content LIKE :q OR p.account_name LIKE :q)";
-            $params['q'] = "%$q%";
+            $where[] = "(p.trans_id LIKE :q1 OR p.content LIKE :q2 OR p.account_name LIKE :q3)";
+            $params['q1'] = "%$q%";
+            $params['q2'] = "%$q%";
+            $params['q3'] = "%$q%";
         }
 
         // Filter by match_status

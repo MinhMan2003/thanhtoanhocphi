@@ -53,9 +53,9 @@
             <th>Trạng thái:</th>
             <td>
                 <?php if (($student['status'] ?? 'active') === 'active'): ?>
-                    <span class="status-badge status-paid">Đang học</span>
+                    <span class="status-badge status-active">Đang học</span>
                 <?php else: ?>
-                    <span class="status-badge status-cancelled">Nghỉ</span>
+                    <span class="status-badge status-inactive">Nghỉ</span>
                 <?php endif; ?>
             </td>
         </tr>

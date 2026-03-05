@@ -117,6 +117,7 @@ function formatVnd(int $amount): string
             $status = $invoice['status'];
             if ($status === 'paid') echo '<span style="color:green;">ĐÃ THANH TOÁN</span>';
             elseif ($status === 'partial') echo '<span style="color:orange;">THANH TOÁN MỘT PHẦN</span>';
+            elseif ($status === 'cancelled') echo '<span style="color:gray;text-decoration:line-through;">ĐÃ HỦY</span>';
             else echo '<span style="color:red;">CHƯA THANH TOÁN</span>';
             ?>
         </p>

@@ -36,7 +36,7 @@ class ThanhToanController extends BaseController
 
         $data = [
             'invoice_id' => '',
-            'payment_method' => 'cash',
+            'thanhtoan_method' => 'cash',
             'amount' => '',
             'paid_at' => date('Y-m-d H:i:s'),
             'bank_ref' => '',
@@ -55,17 +55,17 @@ class ThanhToanController extends BaseController
             } elseif ($amount <= 0) {
                 $error = 'Số tiền phải lớn hơn 0.';
             } else {
-                $paymentData = [
+                $thanhtoanData = [
                     'invoice_id' => $data['invoice_id'],
-                    'payment_method' => $data['payment_method'],
+                    'thanhtoan_method' => $data['thanhtoan_method'],
                     'amount' => $amount,
                     'paid_at' => $data['paid_at'],
                     'bank_ref' => $data['bank_ref'],
                     'note' => $data['note'],
                 ];
 
-                ThanhToan::create($paymentData);
-                $this->redirect('index.php?controller=payment&action=index');
+                ThanhToan::create($thanhtoanData);
+                $this->redirect('index.php?controller=thanhtoan&action=index');
             }
         }
 
@@ -82,9 +82,9 @@ class ThanhToanController extends BaseController
         $this->requireLogin();
 
         $id = (int)($_GET['id'] ?? 0);
-        $payment = $id ? ThanhToan::find($id) : null;
+        $thanhtoan = $id ? ThanhToan::find($id) : null;
 
-        if (!$payment) {
+        if (!$thanhtoan) {
             http_response_code(404);
             echo 'Không tìm thấy thanh toán.';
             return;
@@ -92,7 +92,7 @@ class ThanhToanController extends BaseController
 
         $this->render('thanhtoan/view', [
             'pageTitle' => 'Chi tiết thanh toán',
-            'payment' => $payment,
+            'thanhtoan' => $thanhtoan,
         ]);
     }
 
@@ -101,9 +101,9 @@ class ThanhToanController extends BaseController
         $this->requireLogin();
 
         $id = (int)($_GET['id'] ?? 0);
-        $payment = $id ? ThanhToan::find($id) : null;
+        $thanhtoan = $id ? ThanhToan::find($id) : null;
 
-        if (!$payment) {
+        if (!$thanhtoan) {
             http_response_code(404);
             echo 'Không tìm thấy thanh toán.';
             return;
@@ -113,12 +113,12 @@ class ThanhToanController extends BaseController
         $invoices = HoaDon::getPendingInvoices();
 
         $data = [
-            'invoice_id' => (string)$payment['invoice_id'],
-            'payment_method' => (string)$payment['payment_method'],
-            'amount' => (string)$payment['amount'],
-            'paid_at' => substr($payment['paid_at'], 0, 16),
-            'bank_ref' => (string)($payment['bank_ref'] ?? ''),
-            'note' => (string)($payment['note'] ?? ''),
+            'invoice_id' => (string)$thanhtoan['invoice_id'],
+            'thanhtoan_method' => (string)$thanhtoan['thanhtoan_method'],
+            'amount' => (string)$thanhtoan['amount'],
+            'paid_at' => substr($thanhtoan['paid_at'], 0, 16),
+            'bank_ref' => (string)($thanhtoan['bank_ref'] ?? ''),
+            'note' => (string)($thanhtoan['note'] ?? ''),
         ];
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -133,17 +133,17 @@ class ThanhToanController extends BaseController
             } elseif ($amount <= 0) {
                 $error = 'Số tiền phải lớn hơn 0.';
             } else {
-                $paymentData = [
+                $thanhtoanData = [
                     'invoice_id' => $data['invoice_id'],
-                    'payment_method' => $data['payment_method'],
+                    'thanhtoan_method' => $data['thanhtoan_method'],
                     'amount' => $amount,
                     'paid_at' => $data['paid_at'],
                     'bank_ref' => $data['bank_ref'],
                     'note' => $data['note'],
                 ];
 
-                ThanhToan::update($id, $paymentData);
-                $this->redirect('index.php?controller=payment&action=index');
+                ThanhToan::update($id, $thanhtoanData);
+                $this->redirect('index.php?controller=thanhtoan&action=index');
             }
         }
 
@@ -165,6 +165,40 @@ class ThanhToanController extends BaseController
             ThanhToan::delete($id);
         }
 
-        $this->redirect('index.php?controller=payment&action=index');
+        $this->redirect('index.php?controller=thanhtoan&action=index');
+    }
+
+    /**
+     * AJAX: Tìm kiếm tự động thanh toán
+     */
+    public function searchAutocompleteAction(): void
+    {
+        $this->requireLogin();
+
+        header('Content-Type: application/json; charset=utf-8');
+
+        $q = trim($_GET['q'] ?? '');
+
+        if (strlen($q) < 1) {
+            echo json_encode(['success' => true, 'data' => []]);
+            return;
+        }
+
+        $pdo = \App\Core\Database::getConnection();
+        $stmt = $pdo->prepare("
+            SELECT t.id, t.amount, t.thanhtoan_method, t.paid_at,
+                   i.invoice_code, i.total_amount as invoice_total,
+                   s.full_name as student_name, s.student_code
+            FROM thanhtoans t
+            LEFT JOIN invoices i ON t.invoice_id = i.id
+            LEFT JOIN students s ON i.student_id = s.id
+            WHERE i.invoice_code LIKE :q1 OR s.full_name LIKE :q2 OR s.student_code LIKE :q3 OR t.bank_ref LIKE :q4
+            ORDER BY t.paid_at DESC
+            LIMIT 10
+        ");
+        $stmt->execute(['q1' => "%$q%", 'q2' => "%$q%", 'q3' => "%$q%", 'q4' => "%$q%"]);
+        $results = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        echo json_encode(['success' => true, 'data' => $results]);
     }
 }

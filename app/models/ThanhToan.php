@@ -18,8 +18,10 @@ class ThanhToan
 
         // Search query
         if ($q !== '') {
-            $where[] = "(p.bank_ref LIKE :q OR i.invoice_code LIKE :q OR s.full_name LIKE :q)";
-            $params['q'] = "%$q%";
+            $where[] = "(p.bank_ref LIKE :q1 OR i.invoice_code LIKE :q2 OR s.full_name LIKE :q3)";
+            $params['q1'] = "%$q%";
+            $params['q2'] = "%$q%";
+            $params['q3'] = "%$q%";
         }
 
         // Filter by invoice_id

@@ -11,12 +11,13 @@
     </div>
 </div>
 
-<form method="GET" action="index.php" class="search-form">
+<form method="GET" action="index.php" class="search-form" id="searchForm">
     <input type="hidden" name="controller" value="hoadon">
     <input type="hidden" name="action" value="index">
-    <input type="text" name="q" value="<?= htmlspecialchars($q, ENT_QUOTES, 'UTF-8') ?>" placeholder="Tìm theo mã phiếu, tên học sinh..." class="search-input">
+    <input type="text" name="q" id="searchInput" value="<?= htmlspecialchars($q, ENT_QUOTES, 'UTF-8') ?>" placeholder="Tìm theo mã phiếu, tên học sinh..." class="search-input">
     <button type="submit" class="btn btn-primary">Tìm kiếm</button>
 </form>
+<div id="searchResults" class="search-autocomplete"></div>
 
 <?php if (empty($result['items'])): ?>
     <div class="empty-state">Chưa có phiếu báo thu nào.</div>
@@ -135,6 +136,59 @@ document.addEventListener('DOMContentLoaded', function() {
                 window.open('index.php?controller=in&action=invoiceBulk&ids=' + ids, '_blank');
             }
         });
+    }
+});
+
+// Autocomplete search
+const searchInput = document.getElementById('searchInput');
+const searchResults = document.getElementById('searchResults');
+let debounceTimer;
+
+searchInput.addEventListener('input', function() {
+    clearTimeout(debounceTimer);
+    const q = this.value.trim();
+    
+    if (q.length < 1) {
+        searchResults.classList.remove('show');
+        return;
+    }
+    
+    debounceTimer = setTimeout(async function() {
+        try {
+            const response = await fetch(`index.php?controller=hoadon&action=searchAutocomplete&q=${encodeURIComponent(q)}`);
+            const result = await response.json();
+            
+            if (result.success && result.data.length > 0) {
+                const statusMap = {
+                    'pending': ['Chưa thanh toán', '#f59e0b'],
+                    'paid': ['Đã thanh toán', '#10b981'],
+                    'partial': ['Thanh toán một phần', '#3b82f6'],
+                    'cancelled': ['Đã hủy', '#ef4444']
+                };
+                const [statusText, statusColor] = statusMap[result.data[0].status] || [result.data[0].status, '#6b7280'];
+                
+                searchResults.innerHTML = result.data.map(item => `
+                    <div class="search-autocomplete-item" onclick="window.location.href='index.php?controller=hoadon&action=view&id=${item.id}'">
+                        <div>
+                            <div class="name">${item.student_name} (${item.student_code})</div>
+                            <div class="code">${item.invoice_code} - ${item.month}/${item.year} - ${new Intl.NumberFormat('vi-VN').format(item.total_amount)} đ</div>
+                        </div>
+                        <span class="badge" style="background:${statusColor};color:#fff;">${statusText}</span>
+                    </div>
+                `).join('');
+                searchResults.classList.add('show');
+            } else {
+                searchResults.classList.remove('show');
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }, 200);
+});
+
+document.addEventListener('click', function(e) {
+    if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+        searchResults.classList.remove('show');
     }
 });
 </script>

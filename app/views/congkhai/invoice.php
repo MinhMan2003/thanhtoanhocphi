@@ -91,6 +91,11 @@
             background: #fff3cd;
             color: #856404;
         }
+        .status-cancelled {
+            background: #f8d7da;
+            color: #721c24;
+            text-decoration: line-through;
+        }
         .btn-back {
             display: inline-block;
             padding: 10px 20px;
@@ -289,13 +294,18 @@
             $paid = (int)($invoice['paid_amount'] ?? 0);
             $total = (int)$invoice['total_amount'];
             $status = $invoice['status'];
-            if ($paid >= $total && $total > 0) $status = 'paid';
-            elseif ($paid > 0) $status = 'partial';
+            // Only override status if not already cancelled and if there's payment info
+            if ($status !== 'cancelled') {
+                if ($paid >= $total && $total > 0) $status = 'paid';
+                elseif ($paid > 0) $status = 'partial';
+            }
             ?>
             
             <div class="status-box status-<?= $status ?>">
                 <strong>
-                    <?php if ($status === 'paid'): ?>
+                    <?php if ($status === 'cancelled'): ?>
+                    ✕ ĐÃ HỦY
+                    <?php elseif ($status === 'paid'): ?>
                     ✓ ĐÃ THANH TOÁN ĐỦ
                     <?php elseif ($status === 'partial'): ?>
                     ◐ CÒN NỢ: <?= number_format($total - $paid, 0, ',', '.') ?> đ
@@ -335,7 +345,7 @@
             </p>
             <?php endif; ?>
             
-            <a href="index.php?controller=public&action=pdf&id=<?= (int)$invoice['id'] ?>" class="btn-back" target="_blank">📥 Tải PDF</a>
+            <a href="index.php?controller=congkhai&action=pdf&id=<?= (int)$invoice['id'] ?>" class="btn-back" target="_blank">📥 Tải PDF</a>
             <a href="index.php?controller=congkhai&action=lookup" class="btn-back">← Tra cứu khác</a>
         </div>
         
@@ -361,7 +371,7 @@
         // Kiểm tra trạng thái thanh toán
         async function checkPaymentStatus() {
             try {
-                const response = await fetch(`index.php?controller=public&action=checkPaymentStatus&id=${invoiceId}`);
+                const response = await fetch(`index.php?controller=congkhai&action=checkPaymentStatus&id=${invoiceId}`);
                 const data = await response.json();
                 
                 if (data.success) {
@@ -397,7 +407,10 @@
             let statusClass = 'status-pending';
             let statusText = '✗ CHƯA THANH TOÁN';
             
-            if (data.status === 'paid') {
+            if (data.status === 'cancelled') {
+                statusClass = 'status-cancelled';
+                statusText = '✕ ĐÃ HỦY';
+            } else if (data.status === 'paid') {
                 statusClass = 'status-paid';
                 statusText = '✓ ĐÃ THANH TOÁN ĐỦ';
             } else if (data.status === 'partial') {

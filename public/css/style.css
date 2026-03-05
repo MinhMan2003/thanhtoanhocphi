@@ -306,6 +306,55 @@ tbody tr:hover {
     max-width: 400px;
 }
 
+.search-autocomplete {
+    position: absolute;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 100;
+    display: none;
+}
+
+.search-autocomplete.show {
+    display: block;
+}
+
+.search-autocomplete-item {
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    border-bottom: 1px solid #f3f4f6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.search-autocomplete-item:last-child {
+    border-bottom: none;
+}
+
+.search-autocomplete-item:hover {
+    background: #f9fafb;
+}
+
+.search-autocomplete-item .name {
+    font-weight: 500;
+    color: #111827;
+}
+
+.search-autocomplete-item .code {
+    font-size: 0.85rem;
+    color: #6b7280;
+}
+
+.search-autocomplete-item .badge {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 0.25rem;
+}
+
 .empty-state {
     text-align: center;
     padding: 3rem;
@@ -358,6 +407,44 @@ tbody tr:hover {
 .status-cancelled {
     background: #fee2e2;
     color: #b91c1c;
+}
+
+.status-active {
+    background: #d1fae5;
+    color: #166534;
+}
+
+.status-inactive {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
+.badge {
+    display: inline-block;
+    padding: 0.25rem 0.55rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.badge-success {
+    background: #d1fae5;
+    color: #166534;
+}
+
+.badge-warning {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.badge-danger {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.badge-secondary {
+    background: #f3f4f6;
+    color: #6b7280;
 }
 
 /* Payment stats cards */

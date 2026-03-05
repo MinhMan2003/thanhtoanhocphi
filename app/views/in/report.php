@@ -51,6 +51,7 @@ $percentCollected = $stats['total_amount'] > 0 ? round(($stats['collected'] / $s
         .status-paid { color: green; }
         .status-pending { color: red; }
         .status-partial { color: orange; }
+        .status-cancelled { color: gray; text-decoration: line-through; }
         
         .footer { margin-top: 30px; text-align: center; font-style: italic; font-size: 10pt; color: #666; }
     </style>

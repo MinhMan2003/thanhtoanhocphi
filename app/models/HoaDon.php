@@ -8,6 +8,16 @@ use PDO;
 
 class HoaDon
 {
+    private const VALID_STATUSES = ['pending', 'paid', 'partial', 'cancelled'];
+
+    private static function validateStatus(?string $status): string
+    {
+        if ($status === null || !in_array($status, self::VALID_STATUSES, true)) {
+            return 'pending';
+        }
+        return $status;
+    }
+
     public static function paginate(string $q = '', int $page = 1, int $limit = 20, array $filters = []): array
     {
         $pdo = Database::getConnection();
@@ -18,8 +28,10 @@ class HoaDon
 
         // Search query
         if ($q !== '') {
-            $where[] = "(i.invoice_code LIKE :q OR s.full_name LIKE :q OR s.student_code LIKE :q)";
-            $params['q'] = "%$q%";
+            $where[] = "(i.invoice_code LIKE :q1 OR s.full_name LIKE :q2 OR s.student_code LIKE :q3)";
+            $params['q1'] = "%$q%";
+            $params['q2'] = "%$q%";
+            $params['q3'] = "%$q%";
         }
 
         // Filter by status
@@ -79,7 +91,11 @@ class HoaDon
         $stmt->execute($params);
         $total = (int)$stmt->fetchColumn();
 
-        $sql = "SELECT i.*, s.full_name as student_name, s.student_code, s.grade as khoi, s.class
+        $sql = "SELECT i.*, s.full_name as student_name, s.student_code, s.grade as khoi, s.class,
+                COALESCE(
+                    (SELECT SUM(p.amount) FROM payments p WHERE p.invoice_id = i.id),
+                    0
+                ) as paid_amount
                 FROM invoices i
                 JOIN students s ON i.student_id = s.id
                 $whereClause
@@ -91,6 +107,20 @@ class HoaDon
         $params['offset'] = $offset;
         $stmt->execute($params);
         $items = $stmt->fetchAll();
+
+        // Tính toán trạng thái dựa trên payments
+        foreach ($items as &$item) {
+            $paidAmount = (int)$item['paid_amount'];
+            $totalAmount = (int)$item['total_amount'];
+
+            if ($paidAmount >= $totalAmount && $totalAmount > 0) {
+                $item['status'] = 'paid';
+            } elseif ($paidAmount > 0) {
+                $item['status'] = 'partial';
+            } else {
+                $item['status'] = $item['status'] ?? 'pending';
+            }
+        }
 
         return [
             'items' => $items,
@@ -104,7 +134,11 @@ class HoaDon
     public static function find(int $id): ?array
     {
         $pdo = Database::getConnection();
-        $stmt = $pdo->prepare("SELECT i.*, s.full_name as student_name, s.student_code, s.grade, s.class, s.dob
+        $stmt = $pdo->prepare("SELECT i.*, s.full_name as student_name, s.student_code, s.grade, s.class, s.dob,
+                               COALESCE(
+                                   (SELECT SUM(p.amount) FROM payments p WHERE p.invoice_id = i.id),
+                                   0
+                               ) as paid_amount
                                FROM invoices i
                                JOIN students s ON i.student_id = s.id
                                WHERE i.id = :id LIMIT 1");
@@ -113,6 +147,16 @@ class HoaDon
 
         if ($invoice) {
             $invoice['items'] = self::getItems($id);
+
+            // Tính toán trạng thái dựa trên payments
+            $paidAmount = (int)$invoice['paid_amount'];
+            $totalAmount = (int)$invoice['total_amount'];
+
+            if ($paidAmount >= $totalAmount && $totalAmount > 0) {
+                $invoice['status'] = 'paid';
+            } elseif ($paidAmount > 0) {
+                $invoice['status'] = 'partial';
+            }
         }
 
         return $invoice ?: null;
@@ -137,6 +181,8 @@ class HoaDon
         $pdo->beginTransaction();
 
         try {
+            $validStatus = self::validateStatus($data['status'] ?? null);
+            
             $stmt = $pdo->prepare("INSERT INTO invoices (invoice_code, student_id, month, year, issue_date, due_date, total_amount, status, note)
                                    VALUES (:invoice_code, :student_id, :month, :year, :issue_date, :due_date, :total_amount, :status, :note)");
             $stmt->execute([
@@ -147,7 +193,7 @@ class HoaDon
                 'issue_date' => $data['issue_date'],
                 'due_date' => $data['due_date'] ?? null,
                 'total_amount' => $data['total_amount'],
-                'status' => $data['status'] ?? 'pending',
+                'status' => $validStatus,
                 'note' => $data['note'] ?? null,
             ]);
 
@@ -182,6 +228,8 @@ class HoaDon
         $pdo->beginTransaction();
 
         try {
+            $validStatus = self::validateStatus($data['status'] ?? null);
+            
             $stmt = $pdo->prepare("UPDATE invoices SET 
                                    student_id = :student_id,
                                    month = :month,
@@ -200,7 +248,7 @@ class HoaDon
                 'issue_date' => $data['issue_date'],
                 'due_date' => $data['due_date'] ?? null,
                 'total_amount' => $data['total_amount'],
-                'status' => $data['status'] ?? 'pending',
+                'status' => $validStatus,
                 'note' => $data['note'] ?? null,
             ]);
 
@@ -252,22 +300,59 @@ class HoaDon
     public static function getAllForSelect(): array
     {
         $pdo = Database::getConnection();
-        $stmt = $pdo->query("SELECT i.id, i.invoice_code, s.full_name as student_name, i.total_amount, i.status, i.month, i.year
+        $stmt = $pdo->query("SELECT i.id, i.invoice_code, s.full_name as student_name, i.total_amount, i.status, i.month, i.year,
+                             COALESCE(
+                                 (SELECT SUM(p.amount) FROM payments p WHERE p.invoice_id = i.id),
+                                 0
+                             ) as paid_amount
                              FROM invoices i
                              JOIN students s ON i.student_id = s.id
                              ORDER BY i.created_at DESC
                              LIMIT 100");
-        return $stmt->fetchAll();
+        $items = $stmt->fetchAll();
+
+        // Tính toán trạng thái dựa trên payments
+        foreach ($items as &$item) {
+            $paidAmount = (int)$item['paid_amount'];
+            $totalAmount = (int)$item['total_amount'];
+
+            if ($paidAmount >= $totalAmount && $totalAmount > 0) {
+                $item['status'] = 'paid';
+            } elseif ($paidAmount > 0) {
+                $item['status'] = 'partial';
+            } else {
+                $item['status'] = $item['status'] ?? 'pending';
+            }
+        }
+
+        return $items;
     }
 
     public static function getPendingInvoices(): array
     {
         $pdo = Database::getConnection();
-        $stmt = $pdo->query("SELECT i.*, s.full_name as student_name, s.student_code
+        $stmt = $pdo->query("SELECT i.*, s.full_name as student_name, s.student_code,
+                             COALESCE(
+                                 (SELECT SUM(p.amount) FROM payments p WHERE p.invoice_id = i.id),
+                                 0
+                             ) as paid_amount
                              FROM invoices i
                              JOIN students s ON i.student_id = s.id
-                             WHERE i.status IN ('pending', 'partial')
                              ORDER BY i.due_date ASC, i.created_at DESC");
-        return $stmt->fetchAll();
+        $items = $stmt->fetchAll();
+
+        // Lọc chỉ lấy hóa đơn chưa thanh toán đủ
+        $result = [];
+        foreach ($items as $item) {
+            $paidAmount = (int)$item['paid_amount'];
+            $totalAmount = (int)$item['total_amount'];
+
+            if ($paidAmount < $totalAmount) {
+                $item['status'] = $paidAmount > 0 ? 'partial' : 'pending';
+                $result[] = $item;
+            }
+        }
+
+        return $result;
     }
 }

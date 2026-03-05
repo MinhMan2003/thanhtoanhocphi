@@ -69,8 +69,8 @@ class HoaDonController extends BaseController
             } elseif (empty($items)) {
                 $error = 'Vui lòng thêm ít nhất một khoản thu.';
             } else {
-                $invoiceData = [
-                    'invoice_code' => HoaDon::generateCode(),
+                $hoadonData = [
+                    'hoadon_code' => HoaDon::generateCode(),
                     'student_id' => $data['student_id'],
                     'month' => $data['month'],
                     'year' => $data['year'],
@@ -82,8 +82,8 @@ class HoaDonController extends BaseController
                     'items' => $items,
                 ];
 
-                HoaDon::create($invoiceData);
-                $this->redirect('index.php?controller=invoice&action=index');
+                HoaDon::create($hoadonData);
+                $this->redirect('index.php?controller=hoadon&action=index');
             }
         }
 
@@ -101,9 +101,9 @@ class HoaDonController extends BaseController
         $this->requireLogin();
 
         $id = (int)($_GET['id'] ?? 0);
-        $invoice = $id ? HoaDon::find($id) : null;
+        $hoadon = $id ? HoaDon::find($id) : null;
 
-        if (!$invoice) {
+        if (!$hoadon) {
             http_response_code(404);
             echo 'Không tìm thấy phiếu báo thu.';
             return;
@@ -111,7 +111,7 @@ class HoaDonController extends BaseController
 
         $this->renderPlain('hoadon/view', [
             'pageTitle' => 'Chi tiết phiếu báo thu',
-            'invoice' => $invoice,
+            'hoadon' => $hoadon,
         ]);
     }
 
@@ -120,22 +120,22 @@ class HoaDonController extends BaseController
         $this->requireLogin();
 
         $id = (int)($_GET['id'] ?? 0);
-        $invoice = $id ? HoaDon::find($id) : null;
+        $hoadon = $id ? HoaDon::find($id) : null;
 
-        if (!$invoice) {
+        if (!$hoadon) {
             http_response_code(404);
             echo 'Không tìm thấy phiếu báo thu.';
             return;
         }
 
         // Load helper và gọi hàm tạo PDF - Tải file PDF trực tiếp
-        require_once __DIR__ . '/../helpers/tcpdf_invoice.php';
+        require_once __DIR__ . '/../helpers/tcpdf_hoadon.php';
         
-        $items = $invoice['items'] ?? [];
-        $qrPayment = getVietQRPaymentInfo((int)$invoice['total_amount'], $invoice['invoice_code'] ?? '');
+        $items = $hoadon['items'] ?? [];
+        $qrPayment = getVietQRPaymentInfo((int)$hoadon['total_amount'], $hoadon['hoadon_code'] ?? '');
         
         // Gọi hàm generateInvoicePDFNew để tạo và tải PDF
-        generateInvoicePDFNew($invoice, $items, $qrPayment);
+        generateInvoicePDFNew($hoadon, $items, $qrPayment);
     }
 
     public function downloadPdfAction(): void
@@ -143,22 +143,22 @@ class HoaDonController extends BaseController
         $this->requireLogin();
 
         $id = (int)($_GET['id'] ?? 0);
-        $invoice = $id ? HoaDon::find($id) : null;
+        $hoadon = $id ? HoaDon::find($id) : null;
 
-        if (!$invoice) {
+        if (!$hoadon) {
             http_response_code(404);
             echo 'Không tìm thấy phiếu báo thu.';
             return;
         }
 
         // Load helper và gọi hàm tạo PDF
-        require_once __DIR__ . '/../helpers/tcpdf_invoice.php';
+        require_once __DIR__ . '/../helpers/tcpdf_hoadon.php';
         
-        $items = $invoice['items'] ?? [];
-        $qrPayment = getVietQRPaymentInfo((int)$invoice['total_amount'], $invoice['invoice_code'] ?? '');
+        $items = $hoadon['items'] ?? [];
+        $qrPayment = getVietQRPaymentInfo((int)$hoadon['total_amount'], $hoadon['hoadon_code'] ?? '');
         
         // Gọi hàm generateInvoicePDFNew để tạo PDF
-        generateInvoicePDFNew($invoice, $items, $qrPayment);
+        generateInvoicePDFNew($hoadon, $items, $qrPayment);
     }
 
     /**
@@ -169,9 +169,9 @@ class HoaDonController extends BaseController
         $this->requireLogin();
 
         $id = (int)($_GET['id'] ?? 0);
-        $invoice = $id ? HoaDon::find($id) : null;
+        $hoadon = $id ? HoaDon::find($id) : null;
 
-        if (!$invoice) {
+        if (!$hoadon) {
             http_response_code(404);
             echo 'Không tìm thấy phiếu báo thu.';
             return;
@@ -180,16 +180,16 @@ class HoaDonController extends BaseController
         require_once __DIR__ . '/../helpers/tcpdf_giay_bao_thu.php';
         require_once __DIR__ . '/../helpers/number_to_words.php';
 
-        $items = $invoice['items'] ?? [];
-        $totalAmount = (int)($invoice['total_amount'] ?? 0);
+        $items = $hoadon['items'] ?? [];
+        $totalAmount = (int)($hoadon['total_amount'] ?? 0);
 
-        $dob = $invoice['dob'] ?? '';
+        $dob = $hoadon['dob'] ?? '';
         if ($dob && preg_match('/^\d{4}-\d{2}-\d{2}$/', $dob)) {
             $dob = date('d/m/Y', strtotime($dob));
         }
 
-        $month = (int)($invoice['month'] ?? date('n'));
-        $year = (int)($invoice['year'] ?? date('Y'));
+        $month = (int)($hoadon['month'] ?? date('n'));
+        $year = (int)($hoadon['year'] ?? date('Y'));
         $periodText = "Cả Năm, Niên học {$year} - " . ($year + 1);
 
         $itemsForPdf = [];
@@ -205,11 +205,11 @@ class HoaDonController extends BaseController
             'school_name' => \App\Core\Config::SCHOOL_NAME,
             'school_address' => \App\Core\Config::SCHOOL_ADDRESS,
             'school_phone' => \App\Core\Config::SCHOOL_PHONE,
-            'student_name' => $invoice['student_name'] ?? '',
-            'class_name' => $invoice['class'] ?? '',
+            'student_name' => $hoadon['student_name'] ?? '',
+            'class_name' => $hoadon['class'] ?? '',
             'dob' => $dob,
-            'student_code' => $invoice['student_code'] ?? '',
-            'meal_days' => (int)($invoice['meal_days'] ?? 0),
+            'student_code' => $hoadon['student_code'] ?? '',
+            'meal_days' => (int)($hoadon['meal_days'] ?? 0),
             'items' => $itemsForPdf,
             'current_debt' => $totalAmount,
             'prev_debt' => 0,
@@ -234,7 +234,7 @@ class HoaDonController extends BaseController
             HoaDon::delete($id);
         }
 
-        $this->redirect('index.php?controller=invoice&action=index');
+        $this->redirect('index.php?controller=hoadon&action=index');
     }
 
     public function markPaidAction(): void
@@ -244,12 +244,47 @@ class HoaDonController extends BaseController
         $id = (int)($_GET['id'] ?? 0);
         if ($id) {
             $pdo = \App\Core\Database::getConnection();
-            // Bảng trong database vẫn là "invoices"
-            $stmt = $pdo->prepare('UPDATE invoices SET status = :status WHERE id = :id');
-            $stmt->execute(['status' => 'paid', 'id' => $id]);
+            
+            // Lấy thông tin hóa đơn
+            $stmt = $pdo->prepare('SELECT * FROM invoices WHERE id = :id');
+            $stmt->execute(['id' => $id]);
+            $invoice = $stmt->fetch(\PDO::FETCH_ASSOC);
+            
+            if ($invoice) {
+                $pdo->beginTransaction();
+                try {
+                    // Cập nhật trạng thái hóa đơn
+                    $updateStmt = $pdo->prepare('UPDATE invoices SET status = :status WHERE id = :id');
+                    $updateStmt->execute(['status' => 'paid', 'id' => $id]);
+                    
+                    // Kiểm tra xem đã có thanh toán chưa
+                    $checkStmt = $pdo->prepare('SELECT SUM(amount) FROM payments WHERE invoice_id = :invoice_id');
+                    $checkStmt->execute(['invoice_id' => $id]);
+                    $paidAmount = (int)$checkStmt->fetchColumn();
+                    
+                    // Nếu chưa có thanh toán, tạo bản ghi thanh toán
+                    if ($paidAmount === 0) {
+                        $paymentStmt = $pdo->prepare("INSERT INTO payments (invoice_id, payment_method, amount, paid_at, bank_ref, note)
+                            VALUES (:invoice_id, :payment_method, :amount, :paid_at, :bank_ref, :note)");
+                        $paymentStmt->execute([
+                            'invoice_id' => $id,
+                            'payment_method' => 'cash',
+                            'amount' => $invoice['total_amount'],
+                            'paid_at' => date('Y-m-d H:i:s'),
+                            'bank_ref' => 'MANUAL-' . $invoice['invoice_code'],
+                            'note' => 'Thanh toán thủ công',
+                        ]);
+                    }
+                    
+                    $pdo->commit();
+                } catch (\Exception $e) {
+                    $pdo->rollBack();
+                    throw $e;
+                }
+            }
         }
 
-        $this->redirect('index.php?controller=invoice&action=index');
+        $this->redirect('index.php?controller=hoadon&action=index');
     }
 
     public function editAction(): void
@@ -257,9 +292,9 @@ class HoaDonController extends BaseController
         $this->requireLogin();
 
         $id = (int)($_GET['id'] ?? 0);
-        $invoice = $id ? HoaDon::find($id) : null;
+        $hoadon = $id ? HoaDon::find($id) : null;
 
-        if (!$invoice) {
+        if (!$hoadon) {
             http_response_code(404);
             echo 'Không tìm thấy phiếu báo thu.';
             return;
@@ -270,18 +305,18 @@ class HoaDonController extends BaseController
         $feeCategories = LoaiKhoanThu::getAll();
 
         $data = [
-            'student_id' => (string)$invoice['student_id'],
-            'month' => (string)$invoice['month'],
-            'year' => (string)$invoice['year'],
-            'issue_date' => $invoice['issue_date'],
-            'due_date' => $invoice['due_date'] ?? '',
-            'status' => (string)$invoice['status'],
-            'note' => (string)($invoice['note'] ?? ''),
+            'student_id' => (string)$hoadon['student_id'],
+            'month' => (string)$hoadon['month'],
+            'year' => (string)$hoadon['year'],
+            'issue_date' => $hoadon['issue_date'],
+            'due_date' => $hoadon['due_date'] ?? '',
+            'status' => (string)$hoadon['status'],
+            'note' => (string)($hoadon['note'] ?? ''),
         ];
 
         $items = [];
-        if (!empty($invoice['items'])) {
-            foreach ($invoice['items'] as $item) {
+        if (!empty($hoadon['items'])) {
+            foreach ($hoadon['items'] as $item) {
                 $items[] = [
                     'fee_category_id' => $item['fee_category_id'] ?? '',
                     'description' => $item['description'] ?? '',
@@ -299,7 +334,10 @@ class HoaDonController extends BaseController
                     $data[$k] = trim($_POST[$k] ?? $v);
                 }
             }
-            $data['status'] = $_POST['status'] ?? 'pending';
+            $validStatuses = ['pending', 'paid', 'partial', 'cancelled'];
+            $data['status'] = isset($_POST['status']) && in_array($_POST['status'], $validStatuses, true) 
+                ? $_POST['status'] 
+                : 'pending';
 
             $items = [];
             $totalAmount = 0;
@@ -322,7 +360,7 @@ class HoaDonController extends BaseController
             } elseif (empty($items)) {
                 $error = 'Vui lòng thêm ít nhất một khoản thu.';
             } else {
-                $invoiceData = [
+                $hoadonData = [
                     'student_id' => $data['student_id'],
                     'month' => $data['month'],
                     'year' => $data['year'],
@@ -334,8 +372,8 @@ class HoaDonController extends BaseController
                     'items' => $items,
                 ];
 
-                HoaDon::update($id, $invoiceData);
-                $this->redirect('index.php?controller=invoice&action=index');
+                HoaDon::update($id, $hoadonData);
+                $this->redirect('index.php?controller=hoadon&action=index');
             }
         }
 
@@ -348,6 +386,38 @@ class HoaDonController extends BaseController
             'students' => $students,
             'feeCategories' => $feeCategories,
         ]);
+    }
+
+    /**
+     * AJAX: Tìm kiếm tự động phiếu báo thu
+     */
+    public function searchAutocompleteAction(): void
+    {
+        $this->requireLogin();
+
+        header('Content-Type: application/json; charset=utf-8');
+
+        $q = trim($_GET['q'] ?? '');
+
+        if (strlen($q) < 1) {
+            echo json_encode(['success' => true, 'data' => []]);
+            return;
+        }
+
+        $pdo = \App\Core\Database::getConnection();
+        $stmt = $pdo->prepare("
+            SELECT h.id, h.hoadon_code, h.total_amount, h.status, h.month, h.year,
+                   s.full_name as student_name, s.student_code, s.class
+            FROM hoadons h
+            JOIN students s ON h.student_id = s.id
+            WHERE h.hoadon_code LIKE :q1 OR s.full_name LIKE :q2 OR s.student_code LIKE :q3
+            ORDER BY h.created_at DESC
+            LIMIT 10
+        ");
+        $stmt->execute(['q1' => "%$q%", 'q2' => "%$q%", 'q3' => "%$q%"]);
+        $results = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        echo json_encode(['success' => true, 'data' => $results]);
     }
 
     public function bulkCreateAction(): void
@@ -412,11 +482,11 @@ class HoaDonController extends BaseController
                                 ];
                             }
 
-                            // Bảng trong database là "invoices"
-                            $stmt = $pdo->prepare("INSERT INTO invoices (invoice_code, student_id, month, year, issue_date, due_date, total_amount, status, note)
-                                VALUES (:invoice_code, :student_id, :month, :year, :issue_date, :due_date, :total_amount, :status, :note)");
+                            // Bảng trong database là "hoadons"
+                            $stmt = $pdo->prepare("INSERT INTO hoadons (hoadon_code, student_id, month, year, issue_date, due_date, total_amount, status, note)
+                                VALUES (:hoadon_code, :student_id, :month, :year, :issue_date, :due_date, :total_amount, :status, :note)");
                             $stmt->execute([
-                                'invoice_code' => HoaDon::generateCode(),
+                                'hoadon_code' => HoaDon::generateCode(),
                                 'student_id' => $student['id'],
                                 'month' => $data['month'],
                                 'year' => $data['year'],
@@ -427,14 +497,14 @@ class HoaDonController extends BaseController
                                 'note' => $data['note'] ?: null,
                             ]);
 
-                            $invoiceId = (int)$pdo->lastInsertId();
+                            $hoadonId = (int)$pdo->lastInsertId();
 
                             if (!empty($items)) {
-                                $itemStmt = $pdo->prepare("INSERT INTO invoice_items (invoice_id, fee_category_id, description, amount, sort_order)
-                                    VALUES (:invoice_id, :fee_category_id, :description, :amount, :sort_order)");
+                                $itemStmt = $pdo->prepare("INSERT INTO hoadon_items (hoadon_id, fee_category_id, description, amount, sort_order)
+                                    VALUES (:hoadon_id, :fee_category_id, :description, :amount, :sort_order)");
                                 foreach ($items as $index => $item) {
                                     $itemStmt->execute([
-                                        'invoice_id' => $invoiceId,
+                                        'hoadon_id' => $hoadonId,
                                         'fee_category_id' => $item['fee_category_id'],
                                         'description' => $item['description'],
                                         'amount' => $item['amount'],
@@ -447,7 +517,7 @@ class HoaDonController extends BaseController
                         }
 
                         $pdo->commit();
-                        $this->redirect('index.php?controller=invoice&action=index');
+                        $this->redirect('index.php?controller=hoadon&action=index');
                     } catch (\Exception $e) {
                         $pdo->rollBack();
                         $error = 'Lỗi khi tạo phiếu: ' . $e->getMessage();

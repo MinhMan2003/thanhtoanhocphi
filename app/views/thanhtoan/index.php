@@ -8,12 +8,13 @@
     <a href="index.php?controller=thanhtoan&action=create" class="btn btn-primary">+ Thanh toán mới</a>
 </div>
 
-<form method="GET" action="index.php" class="search-form" style="margin-top:12px; margin-bottom:20px;">
+<form method="GET" action="index.php" class="search-form" style="margin-top:12px; margin-bottom:20px;" id="searchForm">
     <input type="hidden" name="controller" value="payment">
     <input type="hidden" name="action" value="index">
-    <input type="text" name="q" value="<?= htmlspecialchars($q, ENT_QUOTES, 'UTF-8') ?>" placeholder="Tìm theo mã phiếu, tên học sinh..." class="search-input">
+    <input type="text" name="q" id="searchInput" value="<?= htmlspecialchars($q, ENT_QUOTES, 'UTF-8') ?>" placeholder="Tìm theo mã phiếu, tên học sinh..." class="search-input">
     <button type="submit" class="btn btn-primary">Tìm kiếm</button>
 </form>
+<div id="searchResults" class="search-autocomplete"></div>
 
 <div class="stats-cards">
     <div class="stat-card">
@@ -90,3 +91,55 @@
     </div>
     <?php endif; ?>
 <?php endif; ?>
+
+<script>
+const searchInput = document.getElementById('searchInput');
+const searchResults = document.getElementById('searchResults');
+let debounceTimer;
+
+searchInput.addEventListener('input', function() {
+    clearTimeout(debounceTimer);
+    const q = this.value.trim();
+    
+    if (q.length < 1) {
+        searchResults.classList.remove('show');
+        return;
+    }
+    
+    debounceTimer = setTimeout(async function() {
+        try {
+            const response = await fetch(`index.php?controller=thanhtoan&action=searchAutocomplete&q=${encodeURIComponent(q)}`);
+            const result = await response.json();
+            
+            if (result.success && result.data.length > 0) {
+                const methodMap = {
+                    'cash': 'Tiền mặt',
+                    'bank_transfer': 'Chuyển khoản',
+                    'vietqr': 'VietQR',
+                    'other': 'Khác'
+                };
+                
+                searchResults.innerHTML = result.data.map(item => `
+                    <div class="search-autocomplete-item" onclick="window.location.href='index.php?controller=thanhtoan&action=view&id=${item.id}'">
+                        <div>
+                            <div class="name">${item.student_name || 'N/A'} (${item.student_code || 'N/A'})</div>
+                            <div class="code">${item.invoice_code || 'N/A'} - ${new Intl.NumberFormat('vi-VN').format(item.amount)} đ - ${methodMap[item.payment_method] || item.payment_method}</div>
+                        </div>
+                    </div>
+                `).join('');
+                searchResults.classList.add('show');
+            } else {
+                searchResults.classList.remove('show');
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }, 200);
+});
+
+document.addEventListener('click', function(e) {
+    if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+        searchResults.classList.remove('show');
+    }
+});
+</script>

@@ -488,11 +488,11 @@ class PaymentMatchingController extends BaseController
                 FROM invoices h
                 JOIN students s ON h.student_id = s.id
                 WHERE h.status IN ('pending', 'partial')
-                AND (h.invoice_code LIKE :q OR s.full_name LIKE :q OR s.student_code LIKE :q)
+                AND (h.invoice_code LIKE :q1 OR s.full_name LIKE :q2 OR s.student_code LIKE :q3)
                 ORDER BY h.created_at DESC
                 LIMIT 20
             ");
-            $stmt->execute(['q' => "%$q%"]);
+            $stmt->execute(['q1' => "%$q%", 'q2' => "%$q%", 'q3' => "%$q%"]);
         } else {
             $stmt = $pdo->query("
                 SELECT h.*, s.full_name as student_name, s.student_code, s.class

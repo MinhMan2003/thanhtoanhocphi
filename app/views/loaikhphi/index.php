@@ -34,10 +34,11 @@ function translate_unit(string $unit): string
     <form method="get" style="display:flex; gap:8px; align-items:center;">
         <input type="hidden" name="controller" value="feecategory">
         <input type="hidden" name="action" value="index">
-        <input class="form-control" name="q" placeholder="Tìm theo tên khoản thu..." value="<?= htmlspecialchars($q, ENT_QUOTES, 'UTF-8') ?>">
+        <input class="form-control" id="searchInput" name="q" placeholder="Tìm theo tên khoản thu..." value="<?= htmlspecialchars($q, ENT_QUOTES, 'UTF-8') ?>">
         <button class="btn btn-secondary" type="submit">Tìm</button>
     </form>
 </div>
+<div id="searchResults" class="search-autocomplete"></div>
 
 <div class="card" style="margin-top:1rem; padding:0;">
     <div style="padding:12px 16px; border-bottom:1px solid #e5e7eb;">
@@ -92,3 +93,45 @@ function translate_unit(string $unit): string
     </div>
 <?php endif; ?>
 
+<script>
+const searchInput = document.getElementById('searchInput');
+const searchResults = document.getElementById('searchResults');
+let debounceTimer;
+
+searchInput.addEventListener('input', function() {
+    clearTimeout(debounceTimer);
+    const q = this.value.trim();
+
+    if (q.length < 1) {
+        searchResults.classList.remove('show');
+        return;
+    }
+
+    debounceTimer = setTimeout(async function() {
+        try {
+            const response = await fetch(`index.php?controller=loaikhphi&action=searchAutocomplete&q=${encodeURIComponent(q)}`);
+            const result = await response.json();
+
+            if (result.success && result.data.length > 0) {
+                searchResults.innerHTML = result.data.map(item => `
+                    <div class="search-autocomplete-item" onclick="window.location.href='index.php?controller=loaikhphi&action=edit&id=${item.id}'">
+                        <div>
+                            <div class="name">${item.name}</div>
+                            <div class="code">${new Intl.NumberFormat('vi-VN').format(item.default_amount)} đ - ${item.unit === 'month' ? 'theo tháng' : (item.unit === 'once' ? 'một lần' : item.unit)}</div>
+                        </div>
+                    </div>
+                `).join('');
+                searchResults.classList.add('show');
+            } else {
+                searchResults.classList.remove('show');
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }, 200);
+});document.addEventListener('click', function(e) {
+    if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+        searchResults.classList.remove('show');
+    }
+});
+</script>

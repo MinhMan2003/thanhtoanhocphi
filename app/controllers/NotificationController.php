@@ -19,23 +19,23 @@ class NotificationController extends BaseController
             return;
         }
         
-        $invoice = HoaDon::find($id);
-        if (!$invoice) {
+        $hoadon = HoaDon::find($id);
+        if (!$hoadon) {
             echo 'Không tìm thấy phiếu báo thu.';
             return;
         }
         
-        $student = HocSinh::find($invoice['student_id']);
+        $student = HocSinh::find($hoadon['student_id']);
         
         $result = $this->sendNotification([
             'student_name' => $student['full_name'],
             'student_code' => $student['student_code'],
             'class' => $student['class'],
-            'invoice_code' => $invoice['invoice_code'],
-            'month' => $invoice['month'],
-            'year' => $invoice['year'],
-            'amount' => $invoice['total_amount'],
-            'due_date' => $invoice['due_date'],
+            'hoadon_code' => $hoadon['hoadon_code'],
+            'month' => $hoadon['month'],
+            'year' => $hoadon['year'],
+            'amount' => $hoadon['total_amount'],
+            'due_date' => $hoadon['due_date'],
             'phone' => $student['parent_phone'] ?? '',
             'email' => $student['parent_email'] ?? '',
         ]);
@@ -48,14 +48,14 @@ class NotificationController extends BaseController
                 <p>Số điện thoại: ' . htmlspecialchars($student['parent_phone'] ?? 'Không có') . '</p>
                 <p>Email: ' . htmlspecialchars($student['parent_email'] ?? 'Không có') . '</p>
                 <br>
-                <a href="index.php?controller=invoice&action=view&id=' . $id . '" class="btn btn-primary">Quay lại</a>
+                <a href="index.php?controller=hoadon&action=view&id=' . $id . '" class="btn btn-primary">Quay lại</a>
             </div>';
         } else {
             echo '<div style="padding:20px; text-align:center;">
                 <h2 style="color:red;">Gửi thông báo thất bại!</h2>
                 <p>Lỗi: ' . htmlspecialchars($result['error']) . '</p>
                 <br>
-                <a href="index.php?controller=invoice&action=view&id=' . $id . '" class="btn btn-primary">Quay lại</a>
+                <a href="index.php?controller=hoadon&action=view&id=' . $id . '" class="btn btn-primary">Quay lại</a>
             </div>';
         }
     }
@@ -69,27 +69,27 @@ class NotificationController extends BaseController
         
         $pdo = \App\Core\Database::getConnection();
         $stmt = $pdo->prepare("SELECT i.*, s.full_name as student_name, s.parent_phone, s.parent_email 
-            FROM invoices i 
+            FROM hoadons i 
             JOIN students s ON i.student_id = s.id 
             WHERE i.month = :month AND i.year = :year AND i.status != 'paid'");
         $stmt->execute(['month' => $month, 'year' => $year]);
-        $invoices = $stmt->fetchAll();
+        $hoadons = $stmt->fetchAll();
         
         $successCount = 0;
         $failCount = 0;
         
-        foreach ($invoices as $invoice) {
+        foreach ($hoadons as $hoadon) {
             $result = $this->sendNotification([
-                'student_name' => $invoice['student_name'],
+                'student_name' => $hoadon['student_name'],
                 'student_code' => '',
                 'class' => '',
-                'invoice_code' => $invoice['invoice_code'],
-                'month' => $invoice['month'],
-                'year' => $invoice['year'],
-                'amount' => $invoice['total_amount'],
-                'due_date' => $invoice['due_date'],
-                'phone' => $invoice['parent_phone'] ?? '',
-                'email' => $invoice['parent_email'] ?? '',
+                'hoadon_code' => $hoadon['hoadon_code'],
+                'month' => $hoadon['month'],
+                'year' => $hoadon['year'],
+                'amount' => $hoadon['total_amount'],
+                'due_date' => $hoadon['due_date'],
+                'phone' => $hoadon['parent_phone'] ?? '',
+                'email' => $hoadon['parent_email'] ?? '',
             ]);
             
             if ($result['success']) {
@@ -105,7 +105,7 @@ class NotificationController extends BaseController
             <p style="color:green;">Thành công: ' . $successCount . '</p>
             <p style="color:red;">Thất bại: ' . $failCount . '</p>
             <br>
-            <a href="index.php?controller=report&action=index&month=' . $month . '&year=' . $year . '" class="btn btn-primary">Quay lại</a>
+            <a href="index.php?controller=baocao&action=index&month=' . $month . '&year=' . $year . '" class="btn btn-primary">Quay lại</a>
         </div>';
     }
     
@@ -143,7 +143,7 @@ class NotificationController extends BaseController
     
     private function sendEmail(string $email, array $data): array
     {
-        $subject = 'Thông báo học phí - Phiếu ' . $data['invoice_code'];
+        $subject = 'Thông báo học phí - Phiếu ' . $data['hoadon_code'];
         
         $message = '
         <html>
@@ -169,7 +169,7 @@ class NotificationController extends BaseController
                     <table style="width:100%; border-collapse: collapse; margin: 15px 0;">
                         <tr>
                             <td style="padding:8px; border:1px solid #ddd;"><strong>Mã phiếu</strong></td>
-                            <td style="padding:8px; border:1px solid #ddd;">' . htmlspecialchars($data['invoice_code']) . '</td>
+                            <td style="padding:8px; border:1px solid #ddd;">' . htmlspecialchars($data['hoadon_code']) . '</td>
                         </tr>
                         <tr>
                             <td style="padding:8px; border:1px solid #ddd;"><strong>Tháng</strong></td>

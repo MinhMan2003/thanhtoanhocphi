@@ -10,9 +10,9 @@ class AuthController extends BaseController
 {
     public function loginAction(): void
     {
-        // Nếu đã đăng nhập thì chuyển về dashboard
+        // Nếu đã đăng nhập thì chuyển về bangdieukhien
         if (!empty($_SESSION['user_id'])) {
-            $this->redirect('index.php?controller=dashboard&action=index');
+            $this->redirect('index.php?controller=bangdieukhien&action=index');
         }
 
         $error = null;
@@ -35,7 +35,7 @@ class AuthController extends BaseController
 
                     User::updateLastLogin($user['id']);
 
-                    $this->redirect('index.php?controller=dashboard&action=index');
+                    $this->redirect('index.php?controller=bangdieukhien&action=index');
                 } else {
                     $error = 'Tên đăng nhập hoặc mật khẩu không đúng.';
                 }

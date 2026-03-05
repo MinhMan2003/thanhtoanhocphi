@@ -30,7 +30,7 @@ class HocSinhController extends BaseController
 
         $error = null;
         $data = [
-            'student_code' => '',
+            'hocsinh_code' => '',
             'full_name' => '',
             'class' => '',
             'dob' => '',
@@ -47,11 +47,11 @@ class HocSinhController extends BaseController
             }
             $data['status'] = in_array($data['status'], ['active', 'inactive'], true) ? $data['status'] : 'active';
 
-            if ($data['student_code'] === '' || $data['full_name'] === '' || $data['class'] === '') {
+            if ($data['hocsinh_code'] === '' || $data['full_name'] === '' || $data['class'] === '') {
                 $error = 'Vui lòng nhập Mã học sinh, Họ tên và Lớp.';
             } else {
                 HocSinh::create($data);
-                $this->redirect('index.php?controller=student&action=index');
+                $this->redirect('index.php?controller=hocsinh&action=index');
             }
         }
 
@@ -67,8 +67,8 @@ class HocSinhController extends BaseController
         $this->requireLogin();
 
         $id = (int)($_GET['id'] ?? 0);
-        $student = $id ? HocSinh::find($id) : null;
-        if (!$student) {
+        $hocsinh = $id ? HocSinh::find($id) : null;
+        if (!$hocsinh) {
             http_response_code(404);
             echo 'Không tìm thấy học sinh.';
             return;
@@ -76,15 +76,15 @@ class HocSinhController extends BaseController
 
         $error = null;
         $data = [
-            'student_code' => (string)$student['student_code'],
-            'full_name' => (string)$student['full_name'],
-            'class' => (string)$student['class'],
-            'dob' => (string)($student['dob'] ?? ''),
-            'address' => (string)($student['address'] ?? ''),
-            'parent_name' => (string)($student['parent_name'] ?? ''),
-            'parent_phone' => (string)($student['parent_phone'] ?? ''),
-            'parent_email' => (string)($student['parent_email'] ?? ''),
-            'status' => (string)($student['status'] ?? 'active'),
+            'hocsinh_code' => (string)$hocsinh['hocsinh_code'],
+            'full_name' => (string)$hocsinh['full_name'],
+            'class' => (string)$hocsinh['class'],
+            'dob' => (string)($hocsinh['dob'] ?? ''),
+            'address' => (string)($hocsinh['address'] ?? ''),
+            'parent_name' => (string)($hocsinh['parent_name'] ?? ''),
+            'parent_phone' => (string)($hocsinh['parent_phone'] ?? ''),
+            'parent_email' => (string)($hocsinh['parent_email'] ?? ''),
+            'status' => (string)($hocsinh['status'] ?? 'active'),
         ];
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -93,11 +93,11 @@ class HocSinhController extends BaseController
             }
             $data['status'] = in_array($data['status'], ['active', 'inactive'], true) ? $data['status'] : 'active';
 
-            if ($data['student_code'] === '' || $data['full_name'] === '' || $data['class'] === '') {
+            if ($data['hocsinh_code'] === '' || $data['full_name'] === '' || $data['class'] === '') {
                 $error = 'Vui lòng nhập Mã học sinh, Họ tên và Lớp.';
             } else {
                 HocSinh::update($id, $data);
-                $this->redirect('index.php?controller=student&action=index');
+                $this->redirect('index.php?controller=hocsinh&action=index');
             }
         }
 
@@ -118,7 +118,7 @@ class HocSinhController extends BaseController
             HocSinh::delete($id);
         }
 
-        $this->redirect('index.php?controller=student&action=index');
+        $this->redirect('index.php?controller=hocsinh&action=index');
     }
 
     public function viewAction(): void
@@ -126,9 +126,9 @@ class HocSinhController extends BaseController
         $this->requireLogin();
 
         $id = (int)($_GET['id'] ?? 0);
-        $student = $id ? HocSinh::find($id) : null;
+        $hocsinh = $id ? HocSinh::find($id) : null;
 
-        if (!$student) {
+        if (!$hocsinh) {
             http_response_code(404);
             echo 'Không tìm thấy học sinh.';
             return;
@@ -138,7 +138,7 @@ class HocSinhController extends BaseController
 
         $this->render('hocsinh/view', [
             'pageTitle' => 'Chi tiết học sinh',
-            'student' => $student,
+            'hocsinh' => $hocsinh,
             'invoices' => $invoices,
         ]);
     }
@@ -178,7 +178,7 @@ class HocSinhController extends BaseController
                         }
 
                         // Check required columns
-                        $requiredCols = ['student_code', 'full_name', 'class'];
+                        $requiredCols = ['hocsinh_code', 'full_name', 'class'];
                         foreach ($requiredCols as $col) {
                             if (!isset($headerMap[$col])) {
                                 $error = "Thiếu cột bắt buộc: $col";
@@ -189,8 +189,8 @@ class HocSinhController extends BaseController
                         if ($error === null) {
                             // Read data rows
                             while (($row = fgetcsv($handle, 0, ',', '"', '\\')) !== false) {
-                                $student = [
-                                    'student_code' => trim($row[$headerMap['student_code']] ?? ''),
+                                $hocsinh = [
+                                    'hocsinh_code' => trim($row[$headerMap['hocsinh_code']] ?? ''),
                                     'full_name' => trim($row[$headerMap['full_name']] ?? ''),
                                     'class' => trim($row[$headerMap['class']] ?? ''),
                                     'dob' => !empty($row[$headerMap['dob'] ?? -1]) ? trim($row[$headerMap['dob']]) : '',
@@ -200,7 +200,7 @@ class HocSinhController extends BaseController
                                     'parent_email' => !empty($row[$headerMap['parent_email'] ?? -1]) ? trim($row[$headerMap['parent_email']]) : '',
                                     'status' => 'active',
                                 ];
-                                $hocsinh[] = $student;
+                                $hocsinh[] = $hocsinh;
                             }
                         }
                     }
@@ -214,7 +214,7 @@ class HocSinhController extends BaseController
                     $errors = $result['errors'];
 
                     if ($success > 0) {
-                        $this->redirect('index.php?controller=student&action=index&imported=' . $success);
+                        $this->redirect('index.php?controller=hocsinh&action=index&imported=' . $success);
                         return;
                     }
                 }
@@ -227,6 +227,36 @@ class HocSinhController extends BaseController
             'success' => $success,
             'errors' => $errors,
         ]);
+    }
+
+    /**
+     * AJAX: Tìm kiếm tự động học sinh
+     */
+    public function searchAutocompleteAction(): void
+    {
+        $this->requireLogin();
+
+        header('Content-Type: application/json; charset=utf-8');
+
+        $q = trim($_GET['q'] ?? '');
+
+        if (strlen($q) < 1) {
+            echo json_encode(['success' => true, 'data' => []]);
+            return;
+        }
+
+        $pdo = \App\Core\Database::getConnection();
+        $stmt = $pdo->prepare("
+            SELECT id, hocsinh_code, full_name, class, grade
+            FROM hocsinhs
+            WHERE hocsinh_code LIKE :q1 OR full_name LIKE :q2
+            ORDER BY full_name ASC
+            LIMIT 10
+        ");
+        $stmt->execute(['q1' => "%$q%", 'q2' => "%$q%"]);
+        $results = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        echo json_encode(['success' => true, 'data' => $results]);
     }
 }
 

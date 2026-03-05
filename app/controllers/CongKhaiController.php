@@ -446,6 +446,7 @@ class CongKhaiController extends BaseController
         .status-paid { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
         .status-pending { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
         .status-partial { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .status-cancelled { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; text-decoration: line-through; }
         .amount-text { margin-bottom: 10px; font-style: italic; font-size: 12px; }
         .qr-section { margin: 12px 0 8px; padding: 10px 12px; border: 2px dashed #28a745; border-radius: 8px; page-break-inside: avoid; }
         .qr-section h3 { color: #28a745; margin-bottom: 8px; text-align: center; font-size: 13px; }

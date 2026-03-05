@@ -54,8 +54,12 @@
                 <td>
                     <?php if ($hd['status'] === 'paid'): ?>
                         <span class="badge badge-success">Đã thanh toán</span>
+                    <?php elseif ($hd['status'] === 'partial'): ?>
+                        <span class="badge badge-warning">Còn nợ</span>
+                    <?php elseif ($hd['status'] === 'cancelled'): ?>
+                        <span class="badge badge-danger">Đã hủy</span>
                     <?php else: ?>
-                        <span class="badge badge-warning"><?= $hd['status'] ?></span>
+                        <span class="badge badge-secondary">Chưa thanh toán</span>
                     <?php endif; ?>
                 </td>
                 <td>
@@ -90,7 +94,7 @@ document.getElementById('searchHoaDon').addEventListener('input', async function
                     <td>${hd.class}</td>
                     <td>${hd.month}/${hd.year}</td>
                     <td>${new Intl.NumberFormat('vi-VN').format(hd.total_amount)} đ</td>
-                    <td>${hd.status === 'paid' ? '<span class="badge badge-success">Đã thanh toán</span>' : '<span class="badge badge-warning">' + hd.status + '</span>'}</td>
+                    <td>${hd.status === 'paid' ? '<span class="badge badge-success">Đã thanh toán</span>' : (hd.status === 'partial' ? '<span class="badge badge-warning">Còn nợ</span>' : (hd.status === 'cancelled' ? '<span class="badge badge-danger">Đã hủy</span>' : '<span class="badge badge-secondary">Chưa thanh toán</span>'))}</td>
                     <td>
                         ${hd.status !== 'paid' ? `<form method="POST" action="index.php?controller=payment-matching&action=match" style="display:inline;">
                             <input type="hidden" name="payment_id" value="${<?php echo $payment['id']; ?>}">

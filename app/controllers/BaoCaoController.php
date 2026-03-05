@@ -4,9 +4,6 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\BaseController;
-use App\Models\HoaDon;
-use App\Models\ThanhToan;
-use App\Models\HocSinh;
 
 class BaoCaoController extends BaseController
 {
@@ -35,31 +32,48 @@ class BaoCaoController extends BaseController
     {
         $pdo = \App\Core\Database::getConnection();
 
-        // Tổng phiếu
+        // Lấy tất cả hóa đơn trong tháng
         $stmt = $pdo->prepare("SELECT 
-            COUNT(*) as total_invoices,
-            COALESCE(SUM(total_amount), 0) as total_amount,
-            SUM(CASE WHEN status = 'paid' THEN 1 ELSE 0 END) as paid_count,
-            SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending_count,
-            SUM(CASE WHEN status = 'partial' THEN 1 ELSE 0 END) as partial_count
-            FROM invoices WHERE month = :month AND year = :year");
+            i.id,
+            i.total_amount,
+            COALESCE(
+                (SELECT SUM(p.amount) FROM payments p WHERE p.invoice_id = i.id),
+                0
+            ) as paid_amount
+            FROM invoices i 
+            WHERE i.month = :month AND i.year = :year");
         $stmt->execute(['month' => $month, 'year' => $year]);
-        $invoiceStats = $stmt->fetch();
+        $invoices = $stmt->fetchAll();
 
-        // Tổng thu
-        $stmt = $pdo->prepare("SELECT COALESCE(SUM(amount), 0) as total_collected
-            FROM payments WHERE MONTH(paid_at) = :month AND YEAR(paid_at) = :year");
-        $stmt->execute(['month' => $month, 'year' => $year]);
-        $collected = (int)$stmt->fetchColumn();
+        $totalInvoices = count($invoices);
+        $totalAmount = 0;
+        $paidCount = 0;
+        $partialCount = 0;
+        $pendingCount = 0;
+        $collected = 0;
+
+        foreach ($invoices as $inv) {
+            $totalAmount += (int)$inv['total_amount'];
+            $paidAmount = (int)$inv['paid_amount'];
+            $collected += $paidAmount;
+
+            if ($paidAmount >= (int)$inv['total_amount']) {
+                $paidCount++;
+            } elseif ($paidAmount > 0) {
+                $partialCount++;
+            } else {
+                $pendingCount++;
+            }
+        }
 
         return [
-            'total_invoices' => (int)($invoiceStats['total_invoices'] ?? 0),
-            'total_amount' => (int)($invoiceStats['total_amount'] ?? 0),
-            'paid_count' => (int)($invoiceStats['paid_count'] ?? 0),
-            'pending_count' => (int)($invoiceStats['pending_count'] ?? 0),
-            'partial_count' => (int)($invoiceStats['partial_count'] ?? 0),
+            'total_invoices' => $totalInvoices,
+            'total_amount' => $totalAmount,
+            'paid_count' => $paidCount,
+            'pending_count' => $pendingCount,
+            'partial_count' => $partialCount,
             'collected' => $collected,
-            'uncollected' => max(0, (int)($invoiceStats['total_amount'] ?? 0) - $collected),
+            'uncollected' => max(0, $totalAmount - $collected),
         ];
     }
 

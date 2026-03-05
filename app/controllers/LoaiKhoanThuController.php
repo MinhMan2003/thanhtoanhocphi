@@ -48,7 +48,7 @@ class LoaiKhoanThuController extends BaseController
                 $error = 'Vui lòng nhập tên khoản thu.';
             } else {
                 LoaiKhoanThu::create($data);
-                $this->redirect('index.php?controller=feecategory&action=index');
+                $this->redirect('index.php?controller=loaikhphi&action=index');
             }
         }
 
@@ -92,7 +92,7 @@ class LoaiKhoanThuController extends BaseController
                 $error = 'Vui lòng nhập tên khoản thu.';
             } else {
                 LoaiKhoanThu::update($id, $data);
-                $this->redirect('index.php?controller=feecategory&action=index');
+                $this->redirect('index.php?controller=loaikhphi&action=index');
             }
         }
 
@@ -112,7 +112,37 @@ class LoaiKhoanThuController extends BaseController
         if ($id) {
             LoaiKhoanThu::delete($id);
         }
-        $this->redirect('index.php?controller=feecategory&action=index');
+        $this->redirect('index.php?controller=loaikhphi&action=index');
+    }
+
+    /**
+     * AJAX: Tìm kiếm tự động khoản thu
+     */
+    public function searchAutocompleteAction(): void
+    {
+        $this->requireLogin();
+
+        header('Content-Type: application/json; charset=utf-8');
+
+        $q = trim($_GET['q'] ?? '');
+
+        if (strlen($q) < 1) {
+            echo json_encode(['success' => true, 'data' => []]);
+            return;
+        }
+
+        $pdo = \App\Core\Database::getConnection();
+        $stmt = $pdo->prepare("
+            SELECT id, name, description, default_amount, unit
+            FROM fee_categories
+            WHERE name LIKE :q
+            ORDER BY name ASC
+            LIMIT 10
+        ");
+        $stmt->execute(['q' => "%$q%"]);
+        $results = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        echo json_encode(['success' => true, 'data' => $results]);
     }
 }
 

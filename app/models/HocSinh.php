@@ -18,8 +18,10 @@ class HocSinh
 
         // Search query
         if ($q !== '') {
-            $where[] = "(student_code LIKE :q OR full_name LIKE :q OR class LIKE :q)";
-            $params['q'] = '%' . $q . '%';
+            $where[] = "(student_code LIKE :q1 OR full_name LIKE :q2 OR class LIKE :q3)";
+            $params['q1'] = '%' . $q . '%';
+            $params['q2'] = '%' . $q . '%';
+            $params['q3'] = '%' . $q . '%';
         }
 
         // Filter by class
