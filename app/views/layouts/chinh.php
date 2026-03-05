@@ -13,23 +13,29 @@ $pageTitle = $pageTitle ?? 'Hệ thống thanh toán học phí';
     <title><?= htmlspecialchars($pageTitle, ENT_QUOTES, 'UTF-8') ?></title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/css/style.css">
+    <script>
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('open');
+    }
+    </script>
 </head>
 <body>
 <?php if (!isset($_GET['public'])): ?>
 <div class="layout">
-    <aside class="sidebar">
+    <button class="mobile-menu-toggle" onclick="toggleSidebar()">☰ Menu</button>
+    <aside class="sidebar" id="sidebar">
         <div class="sidebar__header">
             <div class="sidebar__title"><?= htmlspecialchars(Config::SCHOOL_NAME, ENT_QUOTES, 'UTF-8') ?></div>
             <div class="sidebar__subtitle">Quản lý học phí</div>
         </div>
         <nav class="sidebar__nav">
-            <a href="index.php?controller=bangdieukhien&action=index">Bảng điều khiển</a>
-            <a href="index.php?controller=hocsinh&action=index">Học sinh</a>
-            <a href="index.php?controller=loaikhphi&action=index">Khoản thu</a>
-            <a href="index.php?controller=hoadon&action=index">Phiếu báo thu</a>
-            <a href="index.php?controller=thanhtoan&action=index">Thanh toán</a>
-            <a href="index.php?controller=baocao&action=index">Báo cáo</a>
-            <a href="index.php?controller=payment-matching&action=index">Đối soát thanh toán</a>
+            <a href="index.php?controller=bangdieukhien&action=index" <?= $currentController === 'bangdieukhien' ? 'class="active"' : '' ?>>Bảng điều khiển</a>
+            <a href="index.php?controller=hocsinh&action=index" <?= $currentController === 'hocsinh' ? 'class="active"' : '' ?>>Học sinh</a>
+            <a href="index.php?controller=loaikhphi&action=index" <?= $currentController === 'loaikhphi' ? 'class="active"' : '' ?>>Khoản thu</a>
+            <a href="index.php?controller=hoadon&action=index" <?= $currentController === 'hoadon' ? 'class="active"' : '' ?>>Phiếu báo thu</a>
+            <a href="index.php?controller=thanhtoan&action=index" <?= $currentController === 'thanhtoan' ? 'class="active"' : '' ?>>Thanh toán</a>
+            <a href="index.php?controller=baocao&action=index" <?= $currentController === 'baocao' ? 'class="active"' : '' ?>>Báo cáo</a>
+            <a href="index.php?controller=payment-matching&action=index" <?= $currentController === 'payment-matching' ? 'class="active"' : '' ?>>Đối soát thanh toán</a>
         </nav>
         <div class="sidebar__footer">
             <?php if (!empty($_SESSION['user_full_name'])): ?>

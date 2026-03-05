@@ -18,6 +18,10 @@ abstract class BaseController
 
         $baseUrl = Config::baseUrl();
 
+        // truyền controller và action hiện tại để highlight menu
+        $currentController = $_GET['controller'] ?? '';
+        $currentAction = $_GET['action'] ?? 'index';
+
         // layout chính
         $contentView = $viewFile;
         require __DIR__ . '/../views/layouts/chinh.php';

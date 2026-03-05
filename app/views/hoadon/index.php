@@ -12,7 +12,7 @@
 </div>
 
 <form method="GET" action="index.php" class="search-form">
-    <input type="hidden" name="controller" value="invoice">
+    <input type="hidden" name="controller" value="hoadon">
     <input type="hidden" name="action" value="index">
     <input type="text" name="q" value="<?= htmlspecialchars($q, ENT_QUOTES, 'UTF-8') ?>" placeholder="Tìm theo mã phiếu, tên học sinh..." class="search-input">
     <button type="submit" class="btn btn-primary">Tìm kiếm</button>
@@ -21,6 +21,7 @@
 <?php if (empty($result['items'])): ?>
     <div class="empty-state">Chưa có phiếu báo thu nào.</div>
 <?php else: ?>
+    <div class="table-container">
     <table class="data-table">
         <thead>
             <tr>
@@ -82,6 +83,7 @@
             <?php endforeach; ?>
         </tbody>
     </table>
+    </div>
 
     <?php if ($result['totalPages'] > 1): ?>
     <div class="pagination">

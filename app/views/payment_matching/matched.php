@@ -20,6 +20,7 @@
 <?php if (empty($payments)): ?>
     <div class="empty-state">Không có payment nào đã khớp.</div>
 <?php else: ?>
+    <div class="table-container">
     <table class="data-table">
         <thead>
             <tr>
@@ -71,6 +72,7 @@
             <?php endforeach; ?>
         </tbody>
     </table>
+    </div>
 
     <?php if ($totalPages > 1): ?>
     <div class="pagination">

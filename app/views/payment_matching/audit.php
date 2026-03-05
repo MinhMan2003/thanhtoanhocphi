@@ -8,6 +8,7 @@
 <?php if (empty($logs)): ?>
     <div class="empty-state">Chưa có lịch sử thay đổi.</div>
 <?php else: ?>
+    <div class="table-container">
     <table class="data-table">
         <thead>
             <tr>
@@ -42,4 +43,5 @@
             <?php endforeach; ?>
         </tbody>
     </table>
+    </div>
 <?php endif; ?>

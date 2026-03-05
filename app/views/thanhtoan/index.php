@@ -33,6 +33,7 @@
 <?php if (empty($result['items'])): ?>
     <div class="empty-state">Chưa có thanh toán nào.</div>
 <?php else: ?>
+    <div class="table-container">
     <table class="data-table">
         <thead>
             <tr>
@@ -75,6 +76,7 @@
             <?php endforeach; ?>
         </tbody>
     </table>
+    </div>
 
     <?php if ($result['totalPages'] > 1): ?>
     <div class="pagination">

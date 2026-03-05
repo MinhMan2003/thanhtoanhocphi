@@ -67,6 +67,7 @@
     <?php if (empty($invoices)): ?>
         <div class="empty-state">Chưa có phiếu báo thu nào.</div>
     <?php else: ?>
+        <div class="table-container">
         <table class="data-table">
             <thead>
                 <tr>
@@ -121,5 +122,6 @@
                 <?php endforeach; ?>
             </tbody>
         </table>
+        </div>
     <?php endif; ?>
 </div>

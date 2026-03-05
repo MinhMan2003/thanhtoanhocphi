@@ -95,6 +95,7 @@ $percentPartial = $stats['total_invoices'] > 0 ? round(($stats['partial_count'] 
 <?php if (!empty($classStats)): ?>
 <div class="card" style="margin-top:1rem;">
     <h3 style="margin-top:0;">Thống kê theo lớp (Năm <?= $year ?>)</h3>
+    <div class="table-container">
     <table class="data-table">
         <thead>
             <tr>
@@ -126,12 +127,14 @@ $percentPartial = $stats['total_invoices'] > 0 ? round(($stats['partial_count'] 
             <?php endforeach; ?>
         </tbody>
     </table>
+    </div>
 </div>
 <?php endif; ?>
 
 <?php if (!empty($topStudents)): ?>
 <div class="card" style="margin-top:1rem;">
     <h3 style="margin-top:0;">Học sinh thanh toán nhiều nhất (Năm <?= $year ?>)</h3>
+    <div class="table-container">
     <table class="data-table">
         <thead>
             <tr>
@@ -158,6 +161,7 @@ $percentPartial = $stats['total_invoices'] > 0 ? round(($stats['partial_count'] 
             <?php endforeach; ?>
         </tbody>
     </table>
+    </div>
 </div>
 <?php endif; ?>
 
