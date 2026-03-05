@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phiếu báo thu học phí</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'DejaVu Sans', 'Segoe UI', Arial, sans-serif;
+            font-size: 11pt;
+            line-height: 1.2;
+            color: #000;
+            background: #eee;
+        }
+
+        .page {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 10mm auto;
+            padding: 12mm;
+            background: #fff;
+        }
+
+        table.layout { border-collapse: collapse; width: 100%; }
+        table.layout td { vertical-align: top; }
+
+        /* Header */
+        .header-table { width: 100%; border: 0; }
+        .header-table td { border: none; padding: 0; text-align: center; }
+        .header-table .line1 { font-size: 13pt; font-weight: bold; }
+        .header-table .line2 { font-size: 10pt; }
+        .header-table .spacer { height: 6mm; }
+
+        /* Title */
+        .title-table { width: 100%; border: 0; }
+        .title-table td { border: none; padding: 0; text-align: center; }
+        .title-table .main { font-size: 15pt; font-weight: bold; }
+        .title-table .sub { font-size: 11pt; }
+        .title-table .spacer { height: 4mm; }
+
+        /* Student info */
+        .student-table { width: 100%; border: 0; }
+        .student-table td { border: none; padding: 0; font-size: 11pt; }
+        .student-table .label { width: 40%; }
+        .student-table .value { width: 60%; font-weight: bold; }
+        .student-table .value-normal { font-weight: normal; }
+        .student-table .row-space { height: 3mm; }
+
+        /* Fee table */
+        .fee-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11pt;
+        }
+        .fee-table th,
+        .fee-table td {
+            border: 1px solid #000;
+            padding: 6px;
+            text-align: left;
+        }
+        .fee-table th {
+            font-weight: bold;
+            text-align: center;
+            background: #fff;
+        }
+        .fee-table .col-stt { width: 8%; text-align: center; }
+        .fee-table .col-content { width: 52%; }
+        .fee-table .col-note { width: 20%; }
+        .fee-table .col-amount { width: 20%; text-align: right; }
+        .fee-table .total-row td { font-weight: bold; }
+
+        /* Amount in words */
+        .amount-words { font-size: 10pt; font-style: italic; padding: 4mm 0; }
+
+        /* QR block */
+        .qr-table {
+            width: 100%;
+            border: 1px dashed #1aa760;
+            border-radius: 3px;
+            border-collapse: separate;
+        }
+        .qr-table td { border: none; padding: 8px; vertical-align: middle; }
+        .qr-table .qr-cell { width: 28%; text-align: center; }
+        .qr-table .qr-cell img { width: 127px; height: 127px; }
+        .qr-table .info-cell { width: 72%; color: #1aa760; font-size: 11pt; }
+        .qr-table .info-cell .title { font-weight: bold; font-size: 12pt; color: #1aa760; }
+        .qr-table .info-cell .footer { font-size: 9pt; color: #000; }
+
+        /* Signatures */
+        .sig-table { width: 100%; border: 0; }
+        .sig-table td { border: none; padding: 0; text-align: center; }
+        .sig-table .label { font-size: 11pt; font-weight: bold; }
+        .sig-table .line { height: 18mm; }
+        .sig-table .underline-td { width: 50%; }
+        .sig-table .underline-inner { border-bottom: 1px solid #000; width: 80%; margin: 0 auto; }
+        .sig-table .name { font-size: 11pt; }
+        .sig-table .note { font-size: 10pt; font-style: italic; padding-top: 6mm; }
+
+        @page {
+            size: A4 portrait;
+            margin: 12mm;
+        }
+
+        @media print {
+            body { background: #fff; }
+            .page {
+                width: 100%;
+                margin: 0;
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <!-- 1) Header căn giữa -->
+        <table class="header-table">
+            <tr><td class="line1">TRƯỜNG THỰC HÀNH SƯ PHẠM</td></tr>
+            <tr><td class="line2">Địa chỉ: Thành phố Trà Vinh | Điện thoại: Chưa có thông tin</td></tr>
+            <tr><td class="spacer"></td></tr>
+        </table>
+
+        <!-- 2) Tiêu đề -->
+        <table class="title-table">
+            <tr><td class="main">PHIẾU BÁO THU HỌC PHÍ</td></tr>
+            <tr><td class="sub">Mã phiếu: PT2026030002 | Ngày lập: 03/03/2026</td></tr>
+            <tr><td class="spacer"></td></tr>
+        </table>
+
+        <!-- 3) Thông tin học sinh -->
+        <table class="student-table">
+            <tr>
+                <td class="label">Họ và tên học sinh:</td>
+                <td class="value">Nguyễn Văn An</td>
+            </tr>
+            <tr><td class="row-space" colspan="2"></td></tr>
+            <tr>
+                <td class="label">Mã học sinh:</td>
+                <td class="value-normal">HS001</td>
+            </tr>
+            <tr><td class="row-space" colspan="2"></td></tr>
+            <tr>
+                <td class="label">Khối/Lớp:</td>
+                <td class="value-normal">1/1A</td>
+            </tr>
+            <tr><td class="row-space" colspan="2"></td></tr>
+            <tr>
+                <td class="label">Tháng:</td>
+                <td class="value-normal">Tháng Ba năm 2026</td>
+            </tr>
+            <tr><td class="row-space" colspan="2"></td></tr>
+            <tr>
+                <td class="label">Hạn thanh toán:</td>
+                <td class="value-normal">10/03/2026</td>
+            </tr>
+            <tr><td class="row-space" colspan="2"></td></tr>
+        </table>
+
+        <!-- 4) Bảng khoản thu -->
+        <table class="fee-table">
+            <tr>
+                <th class="col-stt">STT</th>
+                <th class="col-content">Nội dung thu</th>
+                <th class="col-note">Ghi chú</th>
+                <th class="col-amount">Số tiền (đ)</th>
+            </tr>
+            <tr>
+                <td class="col-stt">1</td>
+                <td class="col-content">Học phí tháng</td>
+                <td class="col-note"></td>
+                <td class="col-amount">850.000</td>
+            </tr>
+            <tr>
+                <td class="col-stt">2</td>
+                <td class="col-content">Tiền bán trú</td>
+                <td class="col-note"></td>
+                <td class="col-amount">650.000</td>
+            </tr>
+            <tr>
+                <td class="col-stt">3</td>
+                <td class="col-content">Tiền máy lạnh phòng ngủ</td>
+                <td class="col-note"></td>
+                <td class="col-amount">150.000</td>
+            </tr>
+            <tr>
+                <td class="col-stt">4</td>
+                <td class="col-content">Tiền bảo hiểm</td>
+                <td class="col-note"></td>
+                <td class="col-amount">120.000</td>
+            </tr>
+            <tr>
+                <td class="col-stt">5</td>
+                <td class="col-content">Tiền sách vở</td>
+                <td class="col-note"></td>
+                <td class="col-amount">350.000</td>
+            </tr>
+            <tr>
+                <td class="col-stt">6</td>
+                <td class="col-content">Tiền vệ sinh</td>
+                <td class="col-note"></td>
+                <td class="col-amount">50.000</td>
+            </tr>
+            <tr class="total-row">
+                <td colspan="3" style="text-align: right;">CỘNG:</td>
+                <td class="col-amount">2.170.000</td>
+            </tr>
+        </table>
+
+        <!-- 5) Số tiền bằng chữ -->
+        <p class="amount-words">Số tiền bằng chữ: Hai triệu một trăm bảy mươi nghìn đồng</p>
+
+        <!-- 6) Khối QR (nét đứt xanh) -->
+        <table class="qr-table">
+            <tr>
+                <td class="qr-cell">
+                    <img src="https://img.vietqr.io/image/BIDV-73510001284830-compact2.png?amount=2170000&addInfo=PT2026030002" alt="QR" />
+                </td>
+                <td class="info-cell">
+                    <span class="title">QUÉT MÃ QR ĐỂ THANH TOÁN</span><br><br>
+                    <b>Ngân hàng:</b> BIDV<br>
+                    <b>Số tài khoản:</b> 73510001284830<br>
+                    <b>Tên tài khoản:</b> PHAM MINH MAN<br>
+                    <b>Số tiền:</b> 2.170.000 ₫<br>
+                    <b>Nội dung:</b> PT2026030002<br><br>
+                    <span class="footer">Quét mã QR bằng ứng dụng ngân hàng để thanh toán nhanh</span>
+                </td>
+            </tr>
+        </table>
+
+        <!-- 7) Chữ ký -->
+        <table class="sig-table">
+            <tr><td colspan="2" style="height: 8mm;"></td></tr>
+            <tr>
+                <td class="label">NGƯỜI LẬP PHIẾU</td>
+                <td class="label">THỦ QUỸ</td>
+            </tr>
+            <tr><td colspan="2" class="line"></td></tr>
+            <tr>
+                <td class="underline-td" align="center"><table border="0" cellpadding="0" cellspacing="0" width="80%" class="underline-inner"><tr><td style="border-bottom: 1px solid #000;">&nbsp;</td></tr></table></td>
+                <td class="underline-td" align="center"><table border="0" cellpadding="0" cellspacing="0" width="80%" class="underline-inner"><tr><td style="border-bottom: 1px solid #000;">&nbsp;</td></tr></table></td>
+            </tr>
+            <tr><td colspan="2" style="height: 3mm;"></td></tr>
+            <tr>
+                <td class="name">Quản trị viên</td>
+                <td class="name">&nbsp;</td>
+            </tr>
+            <tr><td colspan="2" class="note">Phiếu này có giá trị nếu có đủ chữ ký và đóng dấu</td></tr>
+        </table>
+    </div>
+</body>
+</html>
