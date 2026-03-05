@@ -161,6 +161,70 @@ class HoaDonController extends BaseController
         generateInvoicePDFNew($invoice, $items, $qrPayment);
     }
 
+    /**
+     * Xuất PDF "Giấy báo thu và thanh toán" (layout giống mẫu A4)
+     */
+    public function giayBaoThuPdfAction(): void
+    {
+        $this->requireLogin();
+
+        $id = (int)($_GET['id'] ?? 0);
+        $invoice = $id ? HoaDon::find($id) : null;
+
+        if (!$invoice) {
+            http_response_code(404);
+            echo 'Không tìm thấy phiếu báo thu.';
+            return;
+        }
+
+        require_once __DIR__ . '/../helpers/tcpdf_giay_bao_thu.php';
+        require_once __DIR__ . '/../helpers/number_to_words.php';
+
+        $items = $invoice['items'] ?? [];
+        $totalAmount = (int)($invoice['total_amount'] ?? 0);
+
+        $dob = $invoice['dob'] ?? '';
+        if ($dob && preg_match('/^\d{4}-\d{2}-\d{2}$/', $dob)) {
+            $dob = date('d/m/Y', strtotime($dob));
+        }
+
+        $month = (int)($invoice['month'] ?? date('n'));
+        $year = (int)($invoice['year'] ?? date('Y'));
+        $periodText = "Cả Năm, Niên học {$year} - " . ($year + 1);
+
+        $itemsForPdf = [];
+        foreach ($items as $it) {
+            $itemsForPdf[] = [
+                'description' => $it['description'] ?? '',
+                'note' => $it['note'] ?? '',
+                'amount' => (int)($it['amount'] ?? 0),
+            ];
+        }
+
+        $data = [
+            'school_name' => \App\Core\Config::SCHOOL_NAME,
+            'school_address' => \App\Core\Config::SCHOOL_ADDRESS,
+            'school_phone' => \App\Core\Config::SCHOOL_PHONE,
+            'student_name' => $invoice['student_name'] ?? '',
+            'class_name' => $invoice['class'] ?? '',
+            'dob' => $dob,
+            'student_code' => $invoice['student_code'] ?? '',
+            'meal_days' => (int)($invoice['meal_days'] ?? 0),
+            'items' => $itemsForPdf,
+            'current_debt' => $totalAmount,
+            'prev_debt' => 0,
+            'prev_discount' => 0,
+            'current_discount' => 0,
+            'total' => $totalAmount,
+            'amount_in_words' => numberToVietnameseWords($totalAmount),
+            'print_date' => date('d/m/Y'),
+            'creator' => $_SESSION['user_full_name'] ?? '',
+            'period_text' => $periodText,
+        ];
+
+        generateGiayBaoThuPDF($data);
+    }
+
     public function deleteAction(): void
     {
         $this->requireLogin();

@@ -71,6 +71,7 @@
                 <td>
                     <a href="index.php?controller=hoadon&action=view&id=<?= $row['id'] ?>" class="btn-link">Xem</a>
                     | <a href="index.php?controller=hoadon&action=pdf&id=<?= $row['id'] ?>" class="btn-link" target="_blank">PDF</a>
+                    | <a href="index.php?controller=hoadon&action=giayBaoThuPdf&id=<?= $row['id'] ?>" class="btn-link" target="_blank">Giấy báo thu</a>
                     | <a href="index.php?controller=hoadon&action=edit&id=<?= $row['id'] ?>" class="btn-link">Sửa</a>
                     <?php if ($row['status'] !== 'paid'): ?>
                     | <a href="index.php?controller=hoadon&action=markPaid&id=<?= $row['id'] ?>" class="btn-link" onclick="return confirm('Đánh dấu đã thanh toán?')">ĐTT</a>

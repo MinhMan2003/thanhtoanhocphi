@@ -246,6 +246,8 @@ $monthName = $monthNames[(int)$invoice['month']] ?? $invoice['month'];
 </head>
 <body>
     <a href="index.php?controller=hoadon&action=index" class="btn-back">&larr; Quay lại</a>
+    <a href="index.php?controller=hoadon&action=pdf&id=<?= (int)($invoice['id'] ?? 0) ?>" class="btn-print" target="_blank">PDF Phiếu thu</a>
+    <a href="index.php?controller=hoadon&action=giayBaoThuPdf&id=<?= (int)($invoice['id'] ?? 0) ?>" class="btn-print" target="_blank">PDF Giấy báo thu</a>
     <button onclick="window.print()" class="btn-print">In phiếu</button>
 
     <div class="invoice-print">
@@ -348,7 +350,8 @@ $monthName = $monthNames[(int)$invoice['month']] ?? $invoice['month'];
         <div class="signatures">
             <div class="signature-box">
                 <div class="signature-title">NGƯỜI LẬP PHIẾU</div>
-                <div class="signature-name"><?= htmlspecialchars($_SESSION['user_full_name'] ?? 'Kế toán') ?></div>
+                <?php $creatorName = $_SESSION['user_full_name'] ?? ''; $creatorName = ($creatorName === 'Quản trị viên') ? '' : $creatorName; ?>
+                <div class="signature-name"><?= htmlspecialchars($creatorName) ?></div>
             </div>
             <div class="signature-box">
                 <div class="signature-title">THỦ QUỸ</div>

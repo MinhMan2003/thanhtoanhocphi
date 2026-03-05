@@ -104,7 +104,7 @@ class HoaDon
     public static function find(int $id): ?array
     {
         $pdo = Database::getConnection();
-        $stmt = $pdo->prepare("SELECT i.*, s.full_name as student_name, s.student_code, s.grade, s.class
+        $stmt = $pdo->prepare("SELECT i.*, s.full_name as student_name, s.student_code, s.grade, s.class, s.dob
                                FROM invoices i
                                JOIN students s ON i.student_id = s.id
                                WHERE i.id = :id LIMIT 1");

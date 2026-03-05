@@ -119,7 +119,8 @@ function generateInvoicePDFNew(array $invoice, array $items, array $qrPayment = 
     $studentCode = $invoice['student_code'] ?? '';
     $grade = $invoice['grade'] ?? '';
     $className = $invoice['class'] ?? '';
-    $creatorName = $_SESSION['user_full_name'] ?? 'Quản trị viên';
+    $creatorName = $_SESSION['user_full_name'] ?? '';
+    $creatorName = ($creatorName === 'Quản trị viên') ? '' : $creatorName;
 
     $invoiceCode = htmlspecialchars($invoiceCode, ENT_QUOTES, 'UTF-8');
     $issueDate = htmlspecialchars($issueDate, ENT_QUOTES, 'UTF-8');
