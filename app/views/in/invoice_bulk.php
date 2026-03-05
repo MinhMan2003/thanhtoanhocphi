@@ -14,15 +14,42 @@ function formatVnd(int $amount): string
     <title>In phiếu báo thu hàng loạt</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Times New Roman', Times, serif; font-size: 12pt; line-height: 1.3; padding: 15px; }
+        
+        body { 
+            font-family: 'Times New Roman', Times, serif; 
+            font-size: 12pt; 
+            line-height: 1.3; 
+            background: #ccc;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .invoice-item {
+            width: 210mm;
+            min-height: 297mm;
+            background: white;
+            padding: 15mm;
+            margin: 0 auto;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+        }
+        
         @media print {
-            body { padding: 0; }
+            body { padding: 0; background: #fff; }
             .no-print { display: none !important; }
-            .invoice-item { page-break-after: always; }
+            .invoice-item { 
+                box-shadow: none; 
+                page-break-after: always; 
+                width: 100%;
+                min-height: auto;
+                margin: 0;
+            }
             .invoice-item:last-child { page-break-after: auto; }
         }
+        
         .no-print { text-align: center; padding: 10px; background: #f5f5f5; margin-bottom: 20px; }
-        .invoice-item { margin-bottom: 30px; }
         .print-header { text-align: center; margin-bottom: 15px; }
         .print-header h1 { font-size: 16pt; margin-bottom: 3px; }
         .print-header h2 { font-size: 12pt; font-weight: normal; }

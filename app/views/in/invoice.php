@@ -37,8 +37,11 @@ foreach ($items as $item) {
             font-family: "Times New Roman", Times, serif;
             font-size: 12px;
             line-height: 1.4;
-            background: #f5f5f5;
+            background: #ccc;
             padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
         }
 
         /* Khổ A4, căn giữa */
@@ -48,7 +51,7 @@ foreach ($items as $item) {
             margin: 0 auto;
             background: white;
             padding: 20mm 18mm;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
             position: relative;
         }
 

@@ -2,9 +2,9 @@
 -- Run this script to add payment webhook and audit log functionality
 
 -- ============================================
--- Bảng payments (lưu trữ webhook từ ngân hàng)
+-- Bảng bank_payments (lưu trữ webhook từ ngân hàng)
 -- ============================================
-CREATE TABLE IF NOT EXISTS payments (
+CREATE TABLE IF NOT EXISTS bank_payments (
     id INT AUTO_INCREMENT PRIMARY KEY,
     trans_id VARCHAR(100) NOT NULL UNIQUE COMMENT 'Mã giao dịch từ ngân hàng',
     amount INT NOT NULL COMMENT 'Số tiền giao dịch',
@@ -53,7 +53,7 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 -- ============================================
 -- Test data mẫu
 -- ============================================
--- INSERT INTO payments (trans_id, amount, content, bank_time, account_no, account_name, match_status)
+-- INSERT INTO bank_payments (trans_id, amount, content, bank_time, account_no, account_name, match_status)
 -- VALUES 
 -- ('TXN001', 1500000, 'PT2026010001', '2026-01-05 10:30:00', '1234567890', 'NGUYEN VAN A', 'UNMATCHED'),
 -- ('TXN002', 500000, 'HS001', '2026-01-05 11:00:00', '0987654321', 'TRAN THI B', 'UNMATCHED');

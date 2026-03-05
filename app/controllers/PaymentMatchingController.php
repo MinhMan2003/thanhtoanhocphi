@@ -176,7 +176,7 @@ class PaymentMatchingController extends BaseController
                         // Find pending hoadon for this student with matching amount
                         $stmt = $pdo->prepare("
                             SELECT id, invoice_code, total_amount 
-                            FROM hoadon 
+                            FROM invoices 
                             WHERE student_id = :student_id 
                             AND status IN ('pending', 'partial')
                             AND total_amount = :amount
@@ -203,7 +203,7 @@ class PaymentMatchingController extends BaseController
             // Find pending hoadon with matching invoice_code and amount
             $stmt = $pdo->prepare("
                 SELECT id, invoice_code, total_amount, status 
-                FROM hoadon 
+                FROM invoices 
                 WHERE invoice_code = :code 
                 AND status IN ('pending', 'partial')
                 LIMIT 1
@@ -220,7 +220,7 @@ class PaymentMatchingController extends BaseController
                     $oldStatus = $hoadon['status'];
                     $newStatus = 'paid';
                     
-                    $stmt = $pdo->prepare("UPDATE hoadon SET status = :status WHERE id = :id");
+                    $stmt = $pdo->prepare("UPDATE invoices SET status = :status WHERE id = :id");
                     $stmt->execute(['status' => $newStatus, 'id' => $hoadon['id']]);
                     
                     // Update payment
@@ -370,7 +370,7 @@ class PaymentMatchingController extends BaseController
         // Update hoadon status
         $oldStatus = $hoadon['status'];
         $pdo = \App\Core\Database::getConnection();
-        $stmt = $pdo->prepare("UPDATE hoadon SET status = 'paid' WHERE id = :id");
+        $stmt = $pdo->prepare("UPDATE invoices SET status = 'paid' WHERE id = :id");
         $stmt->execute(['id' => $hoadonId]);
         
         // Log audit
@@ -419,7 +419,7 @@ class PaymentMatchingController extends BaseController
         if ($hoadon) {
             $oldStatus = $hoadon['status'];
             $pdo = \App\Core\Database::getConnection();
-            $stmt = $pdo->prepare("UPDATE hoadon SET status = 'pending' WHERE id = :id");
+            $stmt = $pdo->prepare("UPDATE invoices SET status = 'pending' WHERE id = :id");
             $stmt->execute(['id' => $hoadonId]);
             
             // Log audit
@@ -453,7 +453,7 @@ class PaymentMatchingController extends BaseController
         $pdo = \App\Core\Database::getConnection();
         $stmt = $pdo->query("
             SELECT h.*, s.full_name as student_name, s.student_code, s.class
-            FROM hoadon h
+            FROM invoices h
             JOIN students s ON h.student_id = s.id
             WHERE h.status IN ('pending', 'partial')
             ORDER BY h.created_at DESC
@@ -485,7 +485,7 @@ class PaymentMatchingController extends BaseController
         if (!empty($q)) {
             $stmt = $pdo->prepare("
                 SELECT h.*, s.full_name as student_name, s.student_code, s.class
-                FROM hoadon h
+                FROM invoices h
                 JOIN students s ON h.student_id = s.id
                 WHERE h.status IN ('pending', 'partial')
                 AND (h.invoice_code LIKE :q OR s.full_name LIKE :q OR s.student_code LIKE :q)
@@ -496,7 +496,7 @@ class PaymentMatchingController extends BaseController
         } else {
             $stmt = $pdo->query("
                 SELECT h.*, s.full_name as student_name, s.student_code, s.class
-                FROM hoadon h
+                FROM invoices h
                 JOIN students s ON h.student_id = s.id
                 WHERE h.status IN ('pending', 'partial')
                 ORDER BY h.created_at DESC

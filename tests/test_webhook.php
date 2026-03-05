@@ -122,7 +122,7 @@ echo "\n=== Test Database Check ===\n\n";
 -- Sau khi chạy test, kiểm tra:
 SELECT * FROM payments ORDER BY created_at DESC LIMIT 10;
 SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT 10;
-SELECT * FROM hoadon WHERE invoice_code = 'PT2026010001';
+SELECT * FROM invoices WHERE invoice_code = 'PT2026010001';
 */
 
 echo "Sau khi chạy test, chạy các lệnh SQL sau để kiểm tra:\n\n";
@@ -131,7 +131,7 @@ echo "   SELECT * FROM payments ORDER BY created_at DESC LIMIT 10;\n\n";
 echo "2. Xem audit log:\n";
 echo "   SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT 10;\n\n";
 echo "3. Xem trạng thái hóa đơn:\n";
-echo "   SELECT * FROM hoadon WHERE invoice_code = 'PT2026010001';\n\n";
+echo "   SELECT * FROM invoices WHERE invoice_code = 'PT2026010001';\n\n";
 
 // ============================================
 // Test 4: Manual Match

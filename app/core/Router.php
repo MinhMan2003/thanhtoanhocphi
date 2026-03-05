@@ -7,6 +7,9 @@ class Router
 {
     public function dispatch(string $controllerName, string $actionName): void
     {
+        // Chuyển đổi payment-matching -> PaymentMatching
+        $controllerName = str_replace('-', '', ucwords($controllerName, '-'));
+        
         $controllerClass = '\\App\\Controllers\\' . ucfirst($controllerName) . 'Controller';
         $actionMethod = $actionName . 'Action';
 

@@ -122,7 +122,7 @@ class CongKhaiController extends BaseController
     /**
      * Trang tra cứu công khai cho phụ huynh - BẢN ĐÃ HARDEN
      */
-    congkhai function lookupAction(): void
+    public function lookupAction(): void
     {
         $error = null;
         $student = null;
@@ -230,7 +230,7 @@ class CongKhaiController extends BaseController
      * Xem chi tiết phiếu báo thu (công khai)
      * Bản đã harden - bổ sung xác thực
      */
-    congkhai function invoiceAction(): void
+    public function invoiceAction(): void
     {
         $id = (int)($_GET['id'] ?? 0);
         
@@ -290,7 +290,7 @@ class CongKhaiController extends BaseController
      * API: Kiểm tra trạng thái thanh toán (dùng cho auto-refresh)
      * Trả về JSON với thông tin trạng thái
      */
-    congkhai function checkPaymentStatusAction(): void
+    public function checkPaymentStatusAction(): void
     {
         header('Content-Type: application/json');
 
@@ -345,7 +345,7 @@ class CongKhaiController extends BaseController
     /**
      * Tải PDF phiếu báo thu (dành cho phụ huynh)
      */
-    congkhai function pdfAction(): void
+    public function pdfAction(): void
     {
         $id = (int)($_GET['id'] ?? 0);
 
@@ -394,11 +394,11 @@ class CongKhaiController extends BaseController
         require_once __DIR__ . '/../../helpers/number_to_words.php';
 
         $schoolName = \App\Core\Config::SCHOOL_NAME ?? 'Trường học';
-        $totalText = numberToVietnamese((int)$invoice['total_amount']);
-        $paidText = numberToVietnamese($paidAmount);
+        $totalText = numberToVietnameseWords((int)$invoice['total_amount']);
+        $paidText = numberToVietnameseWords($paidAmount);
 
         $remainingAmount = max(0, $totalAmount - $paidAmount);
-        $remainingText = numberToVietnamese($remainingAmount);
+        $remainingText = numberToVietnameseWords($remainingAmount);
 
         header('Content-Type: text/html; charset=utf-8');
         ?>
@@ -410,8 +410,22 @@ class CongKhaiController extends BaseController
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         @page { size: A4 portrait; margin: 12mm; }
-        body { font-family: 'Times New Roman', serif; font-size: 12px; padding: 0; background: #fff; }
-        .invoice { max-width: 100%; margin: 0 auto; border: 1px solid #000; padding: 12px 18px; }
+        body { 
+            font-family: 'Times New Roman', serif; 
+            font-size: 12px; 
+            padding: 15px; 
+            background: #ccc;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+        }
+        .invoice { 
+            width: 210mm;
+            min-height: 297mm;
+            background: #fff; 
+            padding: 15mm; 
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        }
         .header { text-align: center; margin-bottom: 12px; border-bottom: 1px solid #000; padding-bottom: 8px; }
         .header h1 { font-size: 18px; margin-bottom: 4px; text-transform: uppercase; }
         .header .school-name { font-size: 14px; margin-bottom: 4px; }

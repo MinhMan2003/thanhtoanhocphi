@@ -8,10 +8,12 @@ use PDO;
 
 class Payment
 {
+    private const TABLE = 'bank_payments';
+
     public static function find(int $id): ?array
     {
         $pdo = Database::getConnection();
-        $stmt = $pdo->prepare('SELECT * FROM payments WHERE id = :id LIMIT 1');
+        $stmt = $pdo->prepare('SELECT * FROM ' . self::TABLE . ' WHERE id = :id LIMIT 1');
         $stmt->execute(['id' => $id]);
         $payment = $stmt->fetch();
 
@@ -21,7 +23,7 @@ class Payment
     public static function findByTransId(string $transId): ?array
     {
         $pdo = Database::getConnection();
-        $stmt = $pdo->prepare('SELECT * FROM payments WHERE trans_id = :trans_id LIMIT 1');
+        $stmt = $pdo->prepare('SELECT * FROM ' . self::TABLE . ' WHERE trans_id = :trans_id LIMIT 1');
         $stmt->execute(['trans_id' => $transId]);
         $payment = $stmt->fetch();
 
@@ -33,7 +35,7 @@ class Payment
         $pdo = Database::getConnection();
         
         $stmt = $pdo->prepare("
-            INSERT INTO payments (trans_id, amount, content, bank_time, account_no, account_name, bank_id, raw_payload, match_status)
+            INSERT INTO " . self::TABLE . " (trans_id, amount, content, bank_time, account_no, account_name, bank_id, raw_payload, match_status)
             VALUES (:trans_id, :amount, :content, :bank_time, :account_no, :account_name, :bank_id, :raw_payload, :match_status)
         ");
         
@@ -76,7 +78,7 @@ class Payment
             return false;
         }
         
-        $sql = 'UPDATE payments SET ' . implode(', ', $fields) . ' WHERE id = :id';
+        $sql = 'UPDATE ' . self::TABLE . ' SET ' . implode(', ', $fields) . ' WHERE id = :id';
         $stmt = $pdo->prepare($sql);
         
         return $stmt->execute($params);
@@ -116,7 +118,7 @@ class Payment
 
         $whereClause = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
 
-        $countSql = "SELECT COUNT(*) FROM payments p $whereClause";
+        $countSql = "SELECT COUNT(*) FROM " . self::TABLE . " p $whereClause";
         $stmt = $pdo->prepare($countSql);
         $stmt->execute($params);
         $total = (int)$stmt->fetchColumn();
@@ -124,8 +126,8 @@ class Payment
         $sql = "SELECT p.*, 
                     h.invoice_code, h.total_amount as hoadon_total, h.student_id,
                     s.full_name as student_name, s.student_code
-                FROM payments p
-                LEFT JOIN hoadon h ON p.matched_hoadon_id = h.id
+                FROM " . self::TABLE . " p
+                LEFT JOIN invoices h ON p.matched_hoadon_id = h.id
                 LEFT JOIN students s ON h.student_id = s.id
                 $whereClause
                 ORDER BY p.created_at DESC
@@ -159,7 +161,7 @@ class Payment
     public static function delete(int $id): bool
     {
         $pdo = Database::getConnection();
-        $stmt = $pdo->prepare('DELETE FROM payments WHERE id = :id');
+        $stmt = $pdo->prepare('DELETE FROM ' . self::TABLE . ' WHERE id = :id');
         return $stmt->execute(['id' => $id]);
     }
 }
