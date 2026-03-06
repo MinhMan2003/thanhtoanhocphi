@@ -13,7 +13,7 @@
     <h3 style="margin-top:0;">Hướng dẫn</h3>
     <p>Tải lên file CSV chứa danh sách học sinh. File cần có các cột:</p>
     <ul style="margin:10px 0; padding-left:20px;">
-        <li><strong>student_code</strong> - Mã học sinh (bắt buộc)</li>
+        <li><strong>hocsinh_code</strong> - Mã học sinh (bắt buộc)</li>
         <li><strong>full_name</strong> - Họ và tên (bắt buộc)</li>
         <li><strong>class</strong> - Lớp (bắt buộc)</li>
         <li><strong>dob</strong> - Ngày sinh (YYYY-MM-DD, tùy chọn)</li>
@@ -23,7 +23,7 @@
         <li><strong>parent_email</strong> - Email phụ huynh (tùy chọn)</li>
     </ul>
     
-    <p><a href="data:text/csv;charset=utf-8,student_code,full_name,class,dob,address,parent_name,parent_phone,parent_email%0AHS001,Nguyen Van A,6A1,2014-01-15,123 Nguyen Trai,Nguyen Van B,0912345678,a@example.com%0AHS002,Tran Thi B,6A2,2014-02-20,456 Le Loi,Tran Van C,0987654321,b@example.com" download="import_hocsinh_mau.csv" class="btn btn-secondary">Tải file mẫu CSV</a></p>
+    <p><a href="data:text/csv;charset=utf-8,hocsinh_code,full_name,class,dob,address,parent_name,parent_phone,parent_email%0AHS001,Nguyen Van A,6A1,2014-01-15,123 Nguyen Trai,Nguyen Van B,0912345678,a@example.com%0AHS002,Tran Thi B,6A2,2014-02-20,456 Le Loi,Tran Van C,0987654321,b@example.com" download="import_hocsinh_mau.csv" class="btn btn-secondary">Tải file mẫu CSV</a></p>
 </div>
 
 <div class="card" style="margin-top:1rem;">

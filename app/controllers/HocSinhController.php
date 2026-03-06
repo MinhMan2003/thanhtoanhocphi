@@ -10,7 +10,7 @@ class HocSinhController extends BaseController
 {
     public function indexAction(): void
     {
-        $this->requireLogin();
+        $this->requireAdmin();
 
         $q = trim($_GET['q'] ?? '');
         $page = max(1, (int)($_GET['page'] ?? 1));
@@ -26,12 +26,13 @@ class HocSinhController extends BaseController
 
     public function createAction(): void
     {
-        $this->requireLogin();
+        $this->requireAdmin();
 
         $error = null;
         $data = [
             'hocsinh_code' => '',
             'full_name' => '',
+            'grade' => '',
             'class' => '',
             'dob' => '',
             'address' => '',
@@ -64,7 +65,7 @@ class HocSinhController extends BaseController
 
     public function editAction(): void
     {
-        $this->requireLogin();
+        $this->requireAdmin();
 
         $id = (int)($_GET['id'] ?? 0);
         $hocsinh = $id ? HocSinh::find($id) : null;
@@ -78,6 +79,7 @@ class HocSinhController extends BaseController
         $data = [
             'hocsinh_code' => (string)$hocsinh['hocsinh_code'],
             'full_name' => (string)$hocsinh['full_name'],
+            'grade' => (string)($hocsinh['grade'] ?? ''),
             'class' => (string)$hocsinh['class'],
             'dob' => (string)($hocsinh['dob'] ?? ''),
             'address' => (string)($hocsinh['address'] ?? ''),
@@ -111,7 +113,7 @@ class HocSinhController extends BaseController
 
     public function deleteAction(): void
     {
-        $this->requireLogin();
+        $this->requireAdmin();
 
         $id = (int)($_GET['id'] ?? 0);
         if ($id) {
@@ -123,7 +125,7 @@ class HocSinhController extends BaseController
 
     public function viewAction(): void
     {
-        $this->requireLogin();
+        $this->requireAdmin();
 
         $id = (int)($_GET['id'] ?? 0);
         $hocsinh = $id ? HocSinh::find($id) : null;
@@ -145,7 +147,7 @@ class HocSinhController extends BaseController
 
     public function importAction(): void
     {
-        $this->requireLogin();
+        $this->requireAdmin();
 
         $error = null;
         $success = 0;
@@ -234,7 +236,7 @@ class HocSinhController extends BaseController
      */
     public function searchAutocompleteAction(): void
     {
-        $this->requireLogin();
+        $this->requireAdmin();
 
         header('Content-Type: application/json; charset=utf-8');
 
@@ -247,9 +249,9 @@ class HocSinhController extends BaseController
 
         $pdo = \App\Core\Database::getConnection();
         $stmt = $pdo->prepare("
-            SELECT id, hocsinh_code, full_name, class, grade
-            FROM hocsinhs
-            WHERE hocsinh_code LIKE :q1 OR full_name LIKE :q2
+            SELECT id, student_code AS hocsinh_code, full_name, class, grade
+            FROM students
+            WHERE student_code LIKE :q1 OR full_name LIKE :q2
             ORDER BY full_name ASC
             LIMIT 10
         ");

@@ -10,7 +10,7 @@ class LoaiKhoanThuController extends BaseController
 {
     public function indexAction(): void
     {
-        $this->requireLogin();
+        $this->requireAdmin();
 
         $q = trim($_GET['q'] ?? '');
         $page = max(1, (int)($_GET['page'] ?? 1));
@@ -25,7 +25,7 @@ class LoaiKhoanThuController extends BaseController
 
     public function createAction(): void
     {
-        $this->requireLogin();
+        $this->requireAdmin();
 
         $error = null;
         $data = [
@@ -61,7 +61,7 @@ class LoaiKhoanThuController extends BaseController
 
     public function editAction(): void
     {
-        $this->requireLogin();
+        $this->requireAdmin();
 
         $id = (int)($_GET['id'] ?? 0);
         $row = $id ? LoaiKhoanThu::find($id) : null;
@@ -106,7 +106,7 @@ class LoaiKhoanThuController extends BaseController
 
     public function deleteAction(): void
     {
-        $this->requireLogin();
+        $this->requireAdmin();
 
         $id = (int)($_GET['id'] ?? 0);
         if ($id) {
@@ -120,7 +120,7 @@ class LoaiKhoanThuController extends BaseController
      */
     public function searchAutocompleteAction(): void
     {
-        $this->requireLogin();
+        $this->requireAdmin();
 
         header('Content-Type: application/json; charset=utf-8');
 

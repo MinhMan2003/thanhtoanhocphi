@@ -9,7 +9,7 @@ class BaoCaoController extends BaseController
 {
     public function indexAction(): void
     {
-        $this->requireLogin();
+        $this->requireAdmin();
 
         $month = (int)($_GET['month'] ?? date('m'));
         $year = (int)($_GET['year'] ?? date('Y'));
@@ -176,7 +176,7 @@ class BaoCaoController extends BaseController
 
     public function exportAction(): void
     {
-        $this->requireLogin();
+        $this->requireAdmin();
         
         $month = (int)($_GET['month'] ?? date('m'));
         $year = (int)($_GET['year'] ?? date('Y'));

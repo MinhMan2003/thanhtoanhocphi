@@ -6,6 +6,54 @@
 
 require_once __DIR__ . '/../../vendor/autoload.php';
 require_once __DIR__ . '/number_to_words.php';
+require_once __DIR__ . '/vietqr.php';
+
+/**
+ * Tải file từ URL (hỗ trợ cả file_get_contents và curl)
+ */
+function tcpdfTryDownload(string $url): ?string
+{
+    $url = trim($url);
+    if ($url === '') {
+        return null;
+    }
+    $data = null;
+    if (filter_var($url, FILTER_VALIDATE_URL)) {
+        $context = stream_context_create([
+            'http' => [
+                'timeout' => 10,
+                'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            ],
+            'ssl' => [
+                'verify_peer' => false,
+                'verify_peer_name' => false,
+            ],
+        ]);
+        $data = @file_get_contents($url, false, $context);
+    }
+    return $data;
+}
+
+/**
+ * Tải ảnh từ URL và lưu vào thư mục temp
+ */
+function tcpdfLocalTempImageFromUrl(string $url, string $prefix = 'qr_'): ?string
+{
+    $raw = tcpdfTryDownload($url);
+    if ($raw === null) {
+        return null;
+    }
+    $tmpDir = sys_get_temp_dir();
+    if ($tmpDir === '' || !is_dir($tmpDir) || !is_writable($tmpDir)) {
+        return null;
+    }
+    $path = rtrim($tmpDir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $prefix . bin2hex(random_bytes(8)) . '.png';
+    $ok = @file_put_contents($path, $raw);
+    if ($ok === false) {
+        return null;
+    }
+    return $path;
+}
 
 /**
  * Format số tiền với dấu phẩy phân cách hàng nghìn (12,000 / 709,500)
@@ -17,7 +65,7 @@ function formatVNDComma(int $amount): string
 
 /**
  * Tạo PDF "Giấy báo thu và thanh toán"
- * @param array $data [ school_name, school_address, school_phone, student_name, class_name, dob, student_code, meal_days, items[], current_debt, prev_debt, prev_discount, current_discount, total, amount_in_words, print_date, creator, period_text? ]
+ * @param array $data [ school_name, school_address, school_phone, student_name, class_name, dob, student_code, meal_days, items[], current_debt, prev_debt, prev_discount, current_discount, total, amount_in_words, print_date, creator, period_text?, status?, qrPayment? ]
  */
 function generateGiayBaoThuPDF(array $data): void
 {
@@ -38,6 +86,14 @@ function generateGiayBaoThuPDF(array $data): void
     $printDate = htmlspecialchars($data['print_date'] ?? date('d/m/Y'), ENT_QUOTES, 'UTF-8');
     $creator = htmlspecialchars($data['creator'] ?? '', ENT_QUOTES, 'UTF-8');
     $periodText = htmlspecialchars($data['period_text'] ?? 'Cả Năm, Niên học 2025 - 2026', ENT_QUOTES, 'UTF-8');
+    
+    // Trạng thái thanh toán: 'paid' = đã thanh toán, các giá trị khác = chưa thu
+    $status = $data['status'] ?? 'pending';
+    $isPaid = ($status === 'paid');
+    
+    // Thông tin QR payment
+    $qrPayment = $data['qrPayment'] ?? [];
+    $hasQR = !$isPaid && !empty($qrPayment) && !empty($qrPayment['qr_image_url']);
 
     $items = $data['items'] ?? [];
 
@@ -87,14 +143,17 @@ function generateGiayBaoThuPDF(array $data): void
     ";
     $pdf->writeHTML($studentHtml, true, false, true, false, '');
 
-    // ----- 4) Dòng giữa trang, nghiêng -----
-    $mealHtml = "
+    // ----- 4) Dòng giữa trang, nghiêng (chỉ hiển thị khi có meal_days > 0) -----
+    $mealHtml = '';
+    if ($mealDays > 0) {
+        $mealHtml = "
     <table cellpadding=\"0\" cellspacing=\"0\" border=\"0\" width=\"100%\">
       <tr><td align=\"center\" style=\"font-size: 10pt; font-style: italic;\">(Số báo ngày ăn: {$mealDays} ngày)</td></tr>
       <tr><td height=\"4\"></td></tr>
     </table>
     ";
-    $pdf->writeHTML($mealHtml, true, false, true, false, '');
+        $pdf->writeHTML($mealHtml, true, false, true, false, '');
+    }
 
     // ----- 5) Bảng 4 cột: STT | Nội dung | Ghi chú | Số tiền (border 1px, colgroup) -----
     $rowsHtml = '';
@@ -175,14 +234,74 @@ function generateGiayBaoThuPDF(array $data): void
     ";
     $pdf->writeHTML($amountWordsHtml, true, false, true, false, '');
 
-    // ----- 8) Cảnh báo màu đỏ, căn giữa -----
-    $warningHtml = "
+    // ----- 8) Trạng thái thanh toán và QR Code -----
+    // Nếu đã thanh toán: hiển thị "Đã thanh toán" (không có QR)
+    // Nếu chưa thanh toán: hiển thị "Chưa thu" và QR code
+    $statusHtml = '';
+    $qrHtml = '';
+    
+    if ($isPaid) {
+        // Đã thanh toán - hiển thị trạng thái xanh
+        $statusHtml = "
     <table cellpadding=\"0\" cellspacing=\"0\" border=\"0\" width=\"100%\">
-      <tr><td align=\"center\" style=\"font-size: 11pt; font-style: italic; color: #c62828; font-weight: bold;\">Vui lòng nhập đúng số tiền khi thanh toán liên ngân hàng qua QrCode</td></tr>
+      <tr><td align=\"center\" style=\"font-size: 14pt; font-weight: bold; color: #1aa760;\">✓ ĐÃ THANH TOÁN</td></tr>
       <tr><td height=\"6\"></td></tr>
     </table>
     ";
-    $pdf->writeHTML($warningHtml, true, false, true, false, '');
+    } elseif ($hasQR && $total > 0) {
+        // Chưa thanh toán - hiển thị trạng thái đỏ + QR code
+        $statusHtml = "
+    <table cellpadding=\"0\" cellspacing=\"0\" border=\"0\" width=\"100%\">
+      <tr><td align=\"center\" style=\"font-size: 14pt; font-weight: bold; color: #c62828;\">⚠ CHƯA THU</td></tr>
+      <tr><td height=\"6\"></td></tr>
+    </table>
+    ";
+        
+        // Tải QR image tạm
+        $qrTempPath = null;
+        $qrImageSrc = $qrPayment['qr_image_url'] ?? '';
+        if (!empty($qrImageSrc)) {
+            $qrTempPath = tcpdfLocalTempImageFromUrl($qrImageSrc, 'qr_giaybaothu_');
+        }
+        
+        if ($qrTempPath && file_exists($qrTempPath)) {
+            $qrBase64 = base64_encode(file_get_contents($qrTempPath));
+            $qrPx = 150;
+            $qrAmount = formatVNDComma($qrPayment['amount'] ?? $total);
+            $bankName = htmlspecialchars($qrPayment['bank_id'] ?? '', ENT_QUOTES, 'UTF-8');
+            $accountNo = htmlspecialchars($qrPayment['account_number'] ?? '', ENT_QUOTES, 'UTF-8');
+            $accountName = htmlspecialchars($qrPayment['account_name'] ?? '', ENT_QUOTES, 'UTF-8');
+            
+            $qrHtml = "
+    <table cellpadding=\"0\" cellspacing=\"0\" border=\"0\" width=\"100%\">
+      <tr>
+        <td align=\"center\">
+            <img src=\"data:image/png;base64,{$qrBase64}\" width=\"{$qrPx}\" height=\"{$qrPx}\" />
+        </td>
+      </tr>
+      <tr><td height=\"4\"></td></tr>
+      <tr>
+        <td align=\"center\" style=\"font-size: 10pt; font-weight: bold; color: #1aa760;\">QUÉT MÃ QR THANH TOÁN</td>
+      </tr>
+      <tr><td height=\"2\"></td></tr>
+      <tr>
+        <td align=\"center\" style=\"font-size: 11pt;\">
+            <b>Số tiền:</b> {$qrAmount} ₫
+        </td>
+      </tr>
+      <tr><td height=\"4\"></td></tr>
+    </table>
+    ";
+        }
+        
+        // Xóa file tạm
+        if ($qrTempPath && is_file($qrTempPath)) {
+            @unlink($qrTempPath);
+        }
+    }
+    
+    $pdf->writeHTML($statusHtml, true, false, true, false, '');
+    $pdf->writeHTML($qrHtml, true, false, true, false, '');
 
     // ----- 9) Footer căn giữa, nghiêng nhỏ -----
     $footerHtml = "

@@ -42,8 +42,9 @@ class HocSinh
         $stmt->execute($params);
         $total = (int)$stmt->fetchColumn();
 
-        $sql = "SELECT * FROM students $whereClause ORDER BY id DESC LIMIT :limit OFFSET :offset";
+        $sql = "SELECT id, student_code AS hocsinh_code, full_name, grade, class, dob, address, parent_name, parent_phone, parent_email, status FROM students $whereClause ORDER BY id DESC LIMIT :limit OFFSET :offset";
         $stmt = $pdo->prepare($sql);
+        
         foreach ($params as $k => $v) {
             $stmt->bindValue($k, $v, PDO::PARAM_STR);
         }
@@ -51,18 +52,20 @@ class HocSinh
         $stmt->bindValue('offset', $offset, PDO::PARAM_INT);
         $stmt->execute();
 
-        return [
+        $result = [
             'data' => $stmt->fetchAll(),
             'total' => $total,
             'page' => $page,
             'limit' => $limit,
         ];
+        
+        return $result;
     }
 
     public static function find(int $id): ?array
     {
         $pdo = Database::getConnection();
-        $stmt = $pdo->prepare('SELECT * FROM students WHERE id = :id');
+        $stmt = $pdo->prepare('SELECT id, student_code AS hocsinh_code, full_name, grade, class, dob, address, parent_name, parent_phone, parent_email, status FROM students WHERE id = :id');
         $stmt->execute(['id' => $id]);
         $row = $stmt->fetch();
 
@@ -77,7 +80,7 @@ class HocSinh
              VALUES (:student_code, :full_name, :grade, :class, :dob, :address, :parent_name, :parent_phone, :parent_email, :status)'
         );
         $stmt->execute([
-            'student_code' => $data['student_code'],
+            'student_code' => $data['hocsinh_code'] ?? $data['student_code'] ?? '',
             'full_name' => $data['full_name'],
             'grade' => $data['grade'] ?: null,
             'class' => $data['class'],
@@ -111,7 +114,7 @@ class HocSinh
         );
         $stmt->execute([
             'id' => $id,
-            'student_code' => $data['student_code'],
+            'student_code' => $data['hocsinh_code'] ?? $data['student_code'] ?? '',
             'full_name' => $data['full_name'],
             'grade' => $data['grade'] ?: null,
             'class' => $data['class'],
@@ -160,7 +163,7 @@ class HocSinh
     public static function getByClass(string $class): array
     {
         $pdo = Database::getConnection();
-        $stmt = $pdo->prepare("SELECT * FROM students WHERE class = :class AND status = 'active' ORDER BY full_name");
+        $stmt = $pdo->prepare("SELECT id, student_code AS hocsinh_code, full_name, grade, class, dob, address, parent_name, parent_phone, parent_email, status FROM students WHERE class = :class AND status = 'active' ORDER BY full_name");
         $stmt->execute(['class' => $class]);
         return $stmt->fetchAll();
     }
@@ -180,16 +183,16 @@ class HocSinh
             $rowNum = $index + 2; // +2 because index starts at 0 and row 1 is header
 
             // Validate required fields
-            if (empty($data['student_code']) || empty($data['full_name']) || empty($data['class'])) {
+            if (empty($data['hocsinh_code']) || empty($data['full_name']) || empty($data['class'])) {
                 $errors[] = "Dòng $rowNum: Thiếu mã học sinh, họ tên hoặc lớp.";
                 continue;
             }
 
             // Check if student_code already exists
             $stmt = $pdo->prepare('SELECT id FROM students WHERE student_code = :student_code');
-            $stmt->execute(['student_code' => $data['student_code']]);
+            $stmt->execute(['student_code' => $data['hocsinh_code'] ?? $data['student_code'] ?? '']);
             if ($stmt->fetch()) {
-                $errors[] = "Dòng $rowNum: Mã học sinh '{$data['student_code']}' đã tồn tại.";
+                $errors[] = "Dòng $rowNum: Mã học sinh '" . ($data['hocsinh_code'] ?? $data['student_code'] ?? '') . "' đã tồn tại.";
                 continue;
             }
 
@@ -199,7 +202,7 @@ class HocSinh
                      VALUES (:student_code, :full_name, :grade, :class, :dob, :address, :parent_name, :parent_phone, :parent_email, :status)'
                 );
                 $stmt->execute([
-                    'student_code' => $data['student_code'],
+                    'student_code' => $data['hocsinh_code'] ?? $data['student_code'] ?? '',
                     'full_name' => $data['full_name'],
                     'grade' => $data['grade'] ?? null,
                     'class' => $data['class'],

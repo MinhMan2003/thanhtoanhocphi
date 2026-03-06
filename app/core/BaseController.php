@@ -63,20 +63,33 @@ abstract class BaseController
 
     protected function requireLogin(): void
     {
-        if (empty($_SESSION['user_id'])) {
+        // Kiểm tra đăng nhập admin hoặc học sinh
+        $isAdmin = !empty($_SESSION['user_id']);
+        $isStudent = !empty($_SESSION['portal_student_id']);
+
+        if (!$isAdmin && !$isStudent) {
             $this->redirect('index.php?controller=auth&action=login');
         }
     }
 
     protected function requireAdmin(): void
     {
+        // Yêu cầu đăng nhập admin (không chấp nhận đăng nhập học sinh)
         if (empty($_SESSION['user_id'])) {
-            $this->redirect('index.php?controller=auth&action=login');
+            $this->redirect('index.php?controller=auth&action=login&type=admin');
         }
         if (($_SESSION['user_role'] ?? 'staff') !== 'admin') {
             http_response_code(403);
             echo 'Bạn không có quyền truy cập trang này.';
             exit;
+        }
+    }
+
+    protected function requireStudent(): void
+    {
+        // Yêu cầu đăng nhập học sinh
+        if (empty($_SESSION['portal_student_id'])) {
+            $this->redirect('index.php?controller=auth&action=login&type=student');
         }
     }
 }

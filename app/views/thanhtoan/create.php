@@ -33,10 +33,10 @@
         <div class="form__group">
             <label class="form__label">Phương thức thanh toán</label>
             <select name="payment_method" class="form__input">
-                <option value="cash" <?= ($data['payment_method'] == 'cash') ? 'selected' : '' ?>>Tiền mặt</option>
-                <option value="bank_transfer" <?= ($data['payment_method'] == 'bank_transfer') ? 'selected' : '' ?>>Chuyển khoản</option>
-                <option value="vietqr" <?= ($data['payment_method'] == 'vietqr') ? 'selected' : '' ?>>VietQR</option>
-                <option value="other" <?= ($data['payment_method'] == 'other') ? 'selected' : '' ?>>Khác</option>
+                <option value="cash" <?= ($data['payment_method'] ?? 'cash') === 'cash' ? 'selected' : '' ?>>Tiền mặt</option>
+                <option value="bank_transfer" <?= ($data['payment_method'] ?? '') === 'bank_transfer' ? 'selected' : '' ?>>Chuyển khoản</option>
+                <option value="vietqr" <?= ($data['payment_method'] ?? '') === 'vietqr' ? 'selected' : '' ?>>VietQR</option>
+                <option value="other" <?= ($data['payment_method'] ?? '') === 'other' ? 'selected' : '' ?>>Khác</option>
             </select>
         </div>
 

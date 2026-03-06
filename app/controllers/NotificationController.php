@@ -11,7 +11,7 @@ class NotificationController extends BaseController
 {
     public function sendInvoiceAction(): void
     {
-        $this->requireLogin();
+        $this->requireAdmin();
         
         $id = (int)($_GET['id'] ?? 0);
         if (!$id) {
@@ -31,7 +31,7 @@ class NotificationController extends BaseController
             'student_name' => $student['full_name'],
             'student_code' => $student['student_code'],
             'class' => $student['class'],
-            'hoadon_code' => $hoadon['hoadon_code'],
+            'invoice_code' => $hoadon['invoice_code'],
             'month' => $hoadon['month'],
             'year' => $hoadon['year'],
             'amount' => $hoadon['total_amount'],
@@ -62,14 +62,14 @@ class NotificationController extends BaseController
     
     public function sendBulkAction(): void
     {
-        $this->requireLogin();
+        $this->requireAdmin();
         
         $month = (int)($_GET['month'] ?? date('m'));
         $year = (int)($_GET['year'] ?? date('Y'));
         
         $pdo = \App\Core\Database::getConnection();
         $stmt = $pdo->prepare("SELECT i.*, s.full_name as student_name, s.parent_phone, s.parent_email 
-            FROM hoadons i 
+            FROM invoices i 
             JOIN students s ON i.student_id = s.id 
             WHERE i.month = :month AND i.year = :year AND i.status != 'paid'");
         $stmt->execute(['month' => $month, 'year' => $year]);
@@ -83,7 +83,7 @@ class NotificationController extends BaseController
                 'student_name' => $hoadon['student_name'],
                 'student_code' => '',
                 'class' => '',
-                'hoadon_code' => $hoadon['hoadon_code'],
+                'invoice_code' => $hoadon['invoice_code'],
                 'month' => $hoadon['month'],
                 'year' => $hoadon['year'],
                 'amount' => $hoadon['total_amount'],
@@ -143,7 +143,7 @@ class NotificationController extends BaseController
     
     private function sendEmail(string $email, array $data): array
     {
-        $subject = 'Thông báo học phí - Phiếu ' . $data['hoadon_code'];
+        $subject = 'Thông báo học phí - Phiếu ' . $data['invoice_code'];
         
         $message = '
         <html>
@@ -169,7 +169,7 @@ class NotificationController extends BaseController
                     <table style="width:100%; border-collapse: collapse; margin: 15px 0;">
                         <tr>
                             <td style="padding:8px; border:1px solid #ddd;"><strong>Mã phiếu</strong></td>
-                            <td style="padding:8px; border:1px solid #ddd;">' . htmlspecialchars($data['hoadon_code']) . '</td>
+                            <td style="padding:8px; border:1px solid #ddd;">' . htmlspecialchars($data['invoice_code']) . '</td>
                         </tr>
                         <tr>
                             <td style="padding:8px; border:1px solid #ddd;"><strong>Tháng</strong></td>

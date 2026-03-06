@@ -3,6 +3,7 @@
 /** @var string $q */
 
 $data = $result['data'] ?? [];
+
 $total = (int)($result['total'] ?? 0);
 $page = (int)($result['page'] ?? 1);
 $limit = (int)($result['limit'] ?? 20);
@@ -63,7 +64,7 @@ if ($imported > 0): ?>
                 <?php foreach ($data as $row): ?>
                     <tr>
                         <td><?= (int)$row['id'] ?></td>
-                        <td><?= htmlspecialchars($row['hocsinh_code'], ENT_QUOTES, 'UTF-8') ?></td>
+                        <td><?= htmlspecialchars($row['hocsinh_code'] ?? $row['student_code'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
                         <td><?= htmlspecialchars($row['full_name'], ENT_QUOTES, 'UTF-8') ?></td>
                         <td><?= htmlspecialchars((string)($row['grade'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
                         <td><?= htmlspecialchars($row['class'], ENT_QUOTES, 'UTF-8') ?></td>

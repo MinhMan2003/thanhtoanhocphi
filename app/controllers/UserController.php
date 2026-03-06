@@ -10,7 +10,7 @@ class UserController extends BaseController
 {
     public function indexAction(): void
     {
-        $this->requireLogin();
+        $this->requireAdmin();
         $this->requireAdmin();
 
         $page = max(1, (int)($_GET['page'] ?? 1));
@@ -39,7 +39,7 @@ class UserController extends BaseController
 
     public function createAction(): void
     {
-        $this->requireLogin();
+        $this->requireAdmin();
         $this->requireAdmin();
 
         $error = null;
@@ -81,7 +81,7 @@ class UserController extends BaseController
 
     public function editAction(): void
     {
-        $this->requireLogin();
+        $this->requireAdmin();
         $this->requireAdmin();
 
         $id = (int)($_GET['id'] ?? 0);
@@ -133,7 +133,7 @@ class UserController extends BaseController
 
     public function deleteAction(): void
     {
-        $this->requireLogin();
+        $this->requireAdmin();
         $this->requireAdmin();
 
         $id = (int)($_GET['id'] ?? 0);

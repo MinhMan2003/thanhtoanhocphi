@@ -5,39 +5,70 @@ namespace App\Controllers;
 
 use App\Core\BaseController;
 use App\Models\User;
+use App\Models\HocSinhPortal;
 
 class AuthController extends BaseController
 {
     public function loginAction(): void
     {
-        // Nếu đã đăng nhập thì chuyển về bangdieukhien
+        // Nếu đã đăng nhập thì chuyển về trang phù hợp
         if (!empty($_SESSION['user_id'])) {
-            $this->redirect('index.php?controller=bangdieukhien&action=index');
+            $this->redirectToUserHome($_SESSION['user_role'] ?? 'admin');
+            return;
         }
 
         $error = null;
+        $loginType = $_POST['login_type'] ?? $_GET['type'] ?? 'admin';
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $username = trim($_POST['username'] ?? '');
-            $password = $_POST['password'] ?? '';
+            $loginType = $_POST['login_type'] ?? 'admin';
 
-            if ($username === '' || $password === '') {
-                $error = 'Vui lòng nhập tên đăng nhập và mật khẩu.';
-            } else {
-                $user = User::findByUsername($username);
+            if ($loginType === 'student') {
+                // Đăng nhập học sinh/phụ huynh
+                $studentCode = trim($_POST['student_code'] ?? '');
+                $dob = $_POST['dob'] ?? '';
 
-                if ($user && User::verifyPassword($password, $user['password_hash'])) {
-                    // Đăng nhập thành công
-                    $_SESSION['user_id'] = $user['id'];
-                    $_SESSION['user_username'] = $user['username'];
-                    $_SESSION['user_full_name'] = $user['full_name'];
-                    $_SESSION['user_role'] = $user['role'];
-
-                    User::updateLastLogin($user['id']);
-
-                    $this->redirect('index.php?controller=bangdieukhien&action=index');
+                if ($studentCode === '' || $dob === '') {
+                    $error = 'Vui lòng nhập mã học sinh và ngày sinh.';
                 } else {
-                    $error = 'Tên đăng nhập hoặc mật khẩu không đúng.';
+                    $student = HocSinhPortal::lookup($studentCode, $dob);
+
+                    if ($student) {
+                        // Đăng nhập học sinh thành công
+                        $_SESSION['portal_student_id'] = $student['id'];
+                        $_SESSION['portal_student_code'] = $student['student_code'];
+                        $_SESSION['portal_student_name'] = $student['full_name'];
+                        $_SESSION['user_role'] = 'student';
+                        $_SESSION['user_full_name'] = $student['full_name'];
+
+                        $this->redirect('index.php?controller=portal&action=index');
+                    } else {
+                        $error = 'Không tìm thấy học sinh với mã và ngày sinh này.';
+                    }
+                }
+            } else {
+                // Đăng nhập admin
+                $username = trim($_POST['username'] ?? '');
+                $password = $_POST['password'] ?? '';
+
+                if ($username === '' || $password === '') {
+                    $error = 'Vui lòng nhập tên đăng nhập và mật khẩu.';
+                } else {
+                    $user = User::findByUsername($username);
+
+                    if ($user && User::verifyPassword($password, $user['password_hash'])) {
+                        // Đăng nhập admin thành công
+                        $_SESSION['user_id'] = $user['id'];
+                        $_SESSION['user_username'] = $user['username'];
+                        $_SESSION['user_full_name'] = $user['full_name'];
+                        $_SESSION['user_role'] = $user['role'];
+
+                        User::updateLastLogin($user['id']);
+
+                        $this->redirectToUserHome($user['role']);
+                    } else {
+                        $error = 'Tên đăng nhập hoặc mật khẩu không đúng.';
+                    }
                 }
             }
         }
@@ -45,13 +76,38 @@ class AuthController extends BaseController
         $this->renderPlain('auth/login', [
             'pageTitle' => 'Đăng nhập',
             'error' => $error,
+            'loginType' => $loginType,
         ]);
+    }
+
+    /**
+     * Chuyển hướng về trang chủ phù hợp với vai trò
+     */
+    private function redirectToUserHome(string $role): void
+    {
+        // Nếu là học sinh (đăng nhập qua portal)
+        if ($role === 'student') {
+            $this->redirect('index.php?controller=portal&action=index');
+            return;
+        }
+
+        // Admin và các vai trò khác vào trang quản trị
+        $this->redirect('index.php?controller=bangdieukhien&action=index');
     }
 
     public function logoutAction(): void
     {
+        $role = $_SESSION['user_role'] ?? 'admin';
+        
+        // Xóa tất cả session
         session_destroy();
-        $this->redirect('index.php?controller=auth&action=login');
+        
+        // Chuyển hướng về trang đăng nhập phù hợp
+        if ($role === 'student') {
+            $this->redirect('index.php?controller=auth&action=login&type=student');
+        } else {
+            $this->redirect('index.php?controller=auth&action=login&type=admin');
+        }
     }
 
     public function changePasswordAction(): void

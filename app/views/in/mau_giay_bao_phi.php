@@ -265,7 +265,9 @@
             </div>
 
             <!-- Dòng số ngày ăn -->
-            <div class="meal-info">(Số báo ngày ăn: 9 ngày)</div>
+            <?php if (!empty($invoice['meal_days']) && $invoice['meal_days'] > 0): ?>
+            <div class="meal-info">(Số báo ngày ăn: <?= htmlspecialchars($invoice['meal_days']) ?> ngày)</div>
+            <?php endif; ?>
 
             <!-- Bảng phí -->
             <table class="fee-table">
@@ -338,9 +340,11 @@
             </div>
 
             <!-- Dòng đỏ cảnh báo -->
+            <?php if (!empty($total) && $total > 0): ?>
             <div class="warning-red">
                 * Vui lòng nhập đúng số tiền khi thanh toán liên ngân hàng qua QRCode
             </div>
+            <?php endif; ?>
         </div>
 
         <!-- Footer -->

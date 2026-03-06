@@ -12,7 +12,7 @@ class InController extends BaseController
 {
     public function invoiceAction(): void
     {
-        $this->requireLogin();
+        $this->requireAdmin();
         
         $id = (int)($_GET['id'] ?? 0);
         if (!$id) {
@@ -61,7 +61,7 @@ class InController extends BaseController
     
     public function invoiceBulkAction(): void
     {
-        $this->requireLogin();
+        $this->requireAdmin();
         
         $ids = $_GET['ids'] ?? '';
         if (empty($ids)) {
@@ -91,7 +91,7 @@ class InController extends BaseController
     
     public function reportAction(): void
     {
-        $this->requireLogin();
+        $this->requireAdmin();
         
         $month = (int)($_GET['month'] ?? date('m'));
         $year = (int)($_GET['year'] ?? date('Y'));

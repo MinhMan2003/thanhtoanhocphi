@@ -11,7 +11,7 @@ class BangDieuKhienController extends BaseController
 {
     public function indexAction(): void
     {
-        $this->requireLogin();
+        $this->requireAdmin();
 
         $pdo = Database::getConnection();
 

@@ -264,8 +264,10 @@ foreach ($items as $item) {
                 <div>- Mã học sinh: <?= htmlspecialchars($invoice['student_code'] ?? $student['student_code'] ?? '') ?></div>
             </div>
 
-            <!-- Dòng số ngày ăn -->
-            <div class="meal-info">(Số báo ngày ăn: <?= htmlspecialchars($invoice['meal_days'] ?? '0') ?> ngày)</div>
+            <!-- Dòng số ngày ăn - chỉ hiển thị khi có dữ liệu -->
+            <?php if (!empty($invoice['meal_days']) && $invoice['meal_days'] > 0): ?>
+            <div class="meal-info">(Số báo ngày ăn: <?= htmlspecialchars($invoice['meal_days']) ?> ngày)</div>
+            <?php endif; ?>
 
             <!-- Bảng phí -->
             <table class="fee-table">
@@ -316,10 +318,12 @@ foreach ($items as $item) {
                 - Viết bằng chữ: <?= numberToVietnameseWords($total) ?>
             </div>
 
-            <!-- Dòng đỏ cảnh báo -->
+            <!-- Dòng đỏ cảnh báo - chỉ hiển thị khi có số tiền > 0 -->
+            <?php if (!empty($total) && $total > 0): ?>
             <div class="warning-red">
                 * Vui lòng nhập đúng số tiền khi thanh toán liên ngân hàng qua QRCode
             </div>
+            <?php endif; ?>
         </div>
 
         <!-- Footer -->

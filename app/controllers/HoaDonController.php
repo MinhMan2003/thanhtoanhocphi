@@ -12,7 +12,7 @@ class HoaDonController extends BaseController
 {
     public function indexAction(): void
     {
-        $this->requireLogin();
+        $this->requireAdmin();
 
         $q = trim($_GET['q'] ?? '');
         $page = max(1, (int)($_GET['page'] ?? 1));
@@ -28,7 +28,7 @@ class HoaDonController extends BaseController
 
     public function createAction(): void
     {
-        $this->requireLogin();
+        $this->requireAdmin();
 
         $error = null;
         $students = HocSinh::getAllForSelect();
@@ -70,7 +70,7 @@ class HoaDonController extends BaseController
                 $error = 'Vui lòng thêm ít nhất một khoản thu.';
             } else {
                 $hoadonData = [
-                    'hoadon_code' => HoaDon::generateCode(),
+                    'invoice_code' => HoaDon::generateCode(),
                     'student_id' => $data['student_id'],
                     'month' => $data['month'],
                     'year' => $data['year'],
@@ -98,7 +98,7 @@ class HoaDonController extends BaseController
 
     public function viewAction(): void
     {
-        $this->requireLogin();
+        $this->requireAdmin();
 
         $id = (int)($_GET['id'] ?? 0);
         $hoadon = $id ? HoaDon::find($id) : null;
@@ -111,13 +111,13 @@ class HoaDonController extends BaseController
 
         $this->renderPlain('hoadon/view', [
             'pageTitle' => 'Chi tiết phiếu báo thu',
-            'hoadon' => $hoadon,
+            'invoice' => $hoadon,
         ]);
     }
 
     public function pdfAction(): void
     {
-        $this->requireLogin();
+        $this->requireAdmin();
 
         $id = (int)($_GET['id'] ?? 0);
         $hoadon = $id ? HoaDon::find($id) : null;
@@ -129,10 +129,10 @@ class HoaDonController extends BaseController
         }
 
         // Load helper và gọi hàm tạo PDF - Tải file PDF trực tiếp
-        require_once __DIR__ . '/../helpers/tcpdf_hoadon.php';
+        require_once __DIR__ . '/../helpers/tcpdf_invoice.php';
         
         $items = $hoadon['items'] ?? [];
-        $qrPayment = getVietQRPaymentInfo((int)$hoadon['total_amount'], $hoadon['hoadon_code'] ?? '');
+        $qrPayment = getVietQRPaymentInfo((int)$hoadon['total_amount'], $hoadon['invoice_code'] ?? '');
         
         // Gọi hàm generateInvoicePDFNew để tạo và tải PDF
         generateInvoicePDFNew($hoadon, $items, $qrPayment);
@@ -140,7 +140,7 @@ class HoaDonController extends BaseController
 
     public function downloadPdfAction(): void
     {
-        $this->requireLogin();
+        $this->requireAdmin();
 
         $id = (int)($_GET['id'] ?? 0);
         $hoadon = $id ? HoaDon::find($id) : null;
@@ -152,10 +152,10 @@ class HoaDonController extends BaseController
         }
 
         // Load helper và gọi hàm tạo PDF
-        require_once __DIR__ . '/../helpers/tcpdf_hoadon.php';
+        require_once __DIR__ . '/../helpers/tcpdf_invoice.php';
         
         $items = $hoadon['items'] ?? [];
-        $qrPayment = getVietQRPaymentInfo((int)$hoadon['total_amount'], $hoadon['hoadon_code'] ?? '');
+        $qrPayment = getVietQRPaymentInfo((int)$hoadon['total_amount'], $hoadon['invoice_code'] ?? '');
         
         // Gọi hàm generateInvoicePDFNew để tạo PDF
         generateInvoicePDFNew($hoadon, $items, $qrPayment);
@@ -166,7 +166,7 @@ class HoaDonController extends BaseController
      */
     public function giayBaoThuPdfAction(): void
     {
-        $this->requireLogin();
+        $this->requireAdmin();
 
         $id = (int)($_GET['id'] ?? 0);
         $hoadon = $id ? HoaDon::find($id) : null;
@@ -182,6 +182,17 @@ class HoaDonController extends BaseController
 
         $items = $hoadon['items'] ?? [];
         $totalAmount = (int)($hoadon['total_amount'] ?? 0);
+        
+        // Lấy trạng thái thanh toán (đã tính trong HoaDon::find)
+        $status = $hoadon['status'] ?? 'pending';
+        $isPaid = ($status === 'paid');
+        
+        // Lấy thông tin QR thanh toán nếu chưa thanh toán
+        $qrPayment = [];
+        if (!$isPaid && $totalAmount > 0) {
+            require_once __DIR__ . '/../helpers/vietqr.php';
+            $qrPayment = getVietQRPaymentInfo($totalAmount, $hoadon['invoice_code'] ?? '');
+        }
 
         $dob = $hoadon['dob'] ?? '';
         if ($dob && preg_match('/^\d{4}-\d{2}-\d{2}$/', $dob)) {
@@ -220,6 +231,8 @@ class HoaDonController extends BaseController
             'print_date' => date('d/m/Y'),
             'creator' => $_SESSION['user_full_name'] ?? '',
             'period_text' => $periodText,
+            'status' => $status,
+            'qrPayment' => $qrPayment,
         ];
 
         generateGiayBaoThuPDF($data);
@@ -227,7 +240,7 @@ class HoaDonController extends BaseController
 
     public function deleteAction(): void
     {
-        $this->requireLogin();
+        $this->requireAdmin();
 
         $id = (int)($_GET['id'] ?? 0);
         if ($id) {
@@ -239,7 +252,7 @@ class HoaDonController extends BaseController
 
     public function markPaidAction(): void
     {
-        $this->requireLogin();
+        $this->requireAdmin();
 
         $id = (int)($_GET['id'] ?? 0);
         if ($id) {
@@ -289,7 +302,7 @@ class HoaDonController extends BaseController
 
     public function editAction(): void
     {
-        $this->requireLogin();
+        $this->requireAdmin();
 
         $id = (int)($_GET['id'] ?? 0);
         $hoadon = $id ? HoaDon::find($id) : null;
@@ -393,7 +406,7 @@ class HoaDonController extends BaseController
      */
     public function searchAutocompleteAction(): void
     {
-        $this->requireLogin();
+        $this->requireAdmin();
 
         header('Content-Type: application/json; charset=utf-8');
 
@@ -406,11 +419,11 @@ class HoaDonController extends BaseController
 
         $pdo = \App\Core\Database::getConnection();
         $stmt = $pdo->prepare("
-            SELECT h.id, h.hoadon_code, h.total_amount, h.status, h.month, h.year,
+            SELECT h.id, h.invoice_code, h.total_amount, h.status, h.month, h.year,
                    s.full_name as student_name, s.student_code, s.class
-            FROM hoadons h
+            FROM invoices h
             JOIN students s ON h.student_id = s.id
-            WHERE h.hoadon_code LIKE :q1 OR s.full_name LIKE :q2 OR s.student_code LIKE :q3
+            WHERE h.invoice_code LIKE :q1 OR s.full_name LIKE :q2 OR s.student_code LIKE :q3
             ORDER BY h.created_at DESC
             LIMIT 10
         ");
@@ -422,7 +435,7 @@ class HoaDonController extends BaseController
 
     public function bulkCreateAction(): void
     {
-        $this->requireLogin();
+        $this->requireAdmin();
 
         $error = null;
         $success = 0;
@@ -482,11 +495,11 @@ class HoaDonController extends BaseController
                                 ];
                             }
 
-                            // Bảng trong database là "hoadons"
-                            $stmt = $pdo->prepare("INSERT INTO hoadons (hoadon_code, student_id, month, year, issue_date, due_date, total_amount, status, note)
-                                VALUES (:hoadon_code, :student_id, :month, :year, :issue_date, :due_date, :total_amount, :status, :note)");
+                            // Bảng trong database là "invoices"
+                            $stmt = $pdo->prepare("INSERT INTO invoices (invoice_code, student_id, month, year, issue_date, due_date, total_amount, status, note)
+                                VALUES (:invoice_code, :student_id, :month, :year, :issue_date, :due_date, :total_amount, :status, :note)");
                             $stmt->execute([
-                                'hoadon_code' => HoaDon::generateCode(),
+                                'invoice_code' => HoaDon::generateCode(),
                                 'student_id' => $student['id'],
                                 'month' => $data['month'],
                                 'year' => $data['year'],
@@ -500,11 +513,11 @@ class HoaDonController extends BaseController
                             $hoadonId = (int)$pdo->lastInsertId();
 
                             if (!empty($items)) {
-                                $itemStmt = $pdo->prepare("INSERT INTO hoadon_items (hoadon_id, fee_category_id, description, amount, sort_order)
-                                    VALUES (:hoadon_id, :fee_category_id, :description, :amount, :sort_order)");
+                                $itemStmt = $pdo->prepare("INSERT INTO invoice_items (invoice_id, fee_category_id, description, amount, sort_order)
+                                    VALUES (:invoice_id, :fee_category_id, :description, :amount, :sort_order)");
                                 foreach ($items as $index => $item) {
                                     $itemStmt->execute([
-                                        'hoadon_id' => $hoadonId,
+                                        'invoice_id' => $hoadonId,
                                         'fee_category_id' => $item['fee_category_id'],
                                         'description' => $item['description'],
                                         'amount' => $item['amount'],

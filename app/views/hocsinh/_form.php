@@ -4,7 +4,7 @@
 
 <div class="form-group">
     <label class="form-label">Mã học sinh *</label>
-    <input class="form-control" name="student_code" required value="<?= htmlspecialchars((string)$data['student_code'], ENT_QUOTES, 'UTF-8') ?>">
+    <input class="form-control" name="hocsinh_code" required value="<?= htmlspecialchars((string)($data['hocsinh_code'] ?? $data['student_code'] ?? ''), ENT_QUOTES, 'UTF-8') ?>">
 </div>
 <div class="form-group">
     <label class="form-label">Họ tên *</label>

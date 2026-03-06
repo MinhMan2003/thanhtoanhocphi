@@ -178,8 +178,10 @@
             <p>- Mã học sinh : 8600000323</p>
         </div>
 
-        <!-- Số báo ngày ăn (nghiêng, căn giữa) -->
-        <div class="meal-info">(Số báo ngày ăn: 9 ngày)</div>
+        <!-- Số báo ngày ăn (nghiêng, căn giữa) - chỉ hiển thị khi có dữ liệu -->
+        <?php if (!empty($invoice['meal_days']) && $invoice['meal_days'] > 0): ?>
+        <div class="meal-info">(Số báo ngày ăn: <?= htmlspecialchars($invoice['meal_days']) ?> ngày)</div>
+        <?php endif; ?>
 
         <!-- Bảng -->
         <div class="table-container">
@@ -241,10 +243,12 @@
             - Viết bằng chữ: Bảy trăm linh chín nghìn, năm trăm đồng
         </div>
 
-        <!-- Cảnh báo đỏ (trái, nghiêng đậm) -->
+        <!-- Cảnh báo đỏ (trái, nghiêng đậm) - chỉ hiển thị khi có số tiền > 0 -->
+        <?php if (!empty($invoice['total_amount']) && $invoice['total_amount'] > 0): ?>
         <div class="warning">
             Vui lòng nhập đúng số tiền khi thanh toán liên ngân hàng qua QrCode
         </div>
+        <?php endif; ?>
 
         <!-- Footer góc trái -->
         <div class="footer">

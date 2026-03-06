@@ -71,7 +71,7 @@ class PaymentMatchingController extends BaseController
                 'amount' => $paymentData['amount'],
                 'match_status' => $matchResult['match_status'],
                 'matched_hoadon_id' => $matchResult['hoadon_id'] ?? null,
-                'hoadon_code' => $matchResult['hoadon_code'] ?? null,
+                'invoice_code' => $matchResult['invoice_code'] ?? null,
             ]
         ], 201);
     }
@@ -251,7 +251,7 @@ class PaymentMatchingController extends BaseController
             'matched' => $matchStatus === 'MATCHED',
             'match_status' => $matchStatus,
             'hoadon_id' => $hoadonId,
-            'hoadon_code' => $hoadonCode,
+            'invoice_code' => $hoadonCode,
         ];
     }
 
@@ -261,7 +261,7 @@ class PaymentMatchingController extends BaseController
      */
     public function unmatchedAction(): void
     {
-        $this->requireLogin();
+        $this->requireAdmin();
         
         $page = max(1, (int)($_GET['page'] ?? 1));
         $limit = min(100, max(1, (int)($_GET['limit'] ?? 20)));
@@ -284,7 +284,7 @@ class PaymentMatchingController extends BaseController
      */
     public function matchedAction(): void
     {
-        $this->requireLogin();
+        $this->requireAdmin();
         
         $page = max(1, (int)($_GET['page'] ?? 1));
         $limit = min(100, max(1, (int)($_GET['limit'] ?? 20)));
@@ -307,7 +307,7 @@ class PaymentMatchingController extends BaseController
      */
     public function indexAction(): void
     {
-        $this->requireLogin();
+        $this->requireAdmin();
         
         $page = max(1, (int)($_GET['page'] ?? 1));
         $limit = min(100, max(1, (int)($_GET['limit'] ?? 20)));
@@ -335,7 +335,7 @@ class PaymentMatchingController extends BaseController
      */
     public function matchAction(): void
     {
-        $this->requireLogin();
+        $this->requireAdmin();
         
         $paymentId = (int)($_GET['payment_id'] ?? 0);
         $hoadonId = (int)($_GET['hoadon_id'] ?? 0);
@@ -388,7 +388,7 @@ class PaymentMatchingController extends BaseController
      */
     public function unmatchAction(): void
     {
-        $this->requireLogin();
+        $this->requireAdmin();
         
         $paymentId = (int)($_GET['payment_id'] ?? 0);
         
@@ -438,7 +438,7 @@ class PaymentMatchingController extends BaseController
      */
     public function selectHoaDonAction(): void
     {
-        $this->requireLogin();
+        $this->requireAdmin();
         
         $paymentId = (int)($_GET['payment_id'] ?? 0);
         
@@ -474,7 +474,7 @@ class PaymentMatchingController extends BaseController
      */
     public function searchHoaDonAction(): void
     {
-        $this->requireLogin();
+        $this->requireAdmin();
         
         header('Content-Type: application/json; charset=utf-8');
         
@@ -515,7 +515,7 @@ class PaymentMatchingController extends BaseController
      */
     public function auditAction(): void
     {
-        $this->requireLogin();
+        $this->requireAdmin();
         
         $hoadonId = (int)($_GET['hoadon_id'] ?? 0);
         

@@ -11,7 +11,7 @@ class ThanhToanController extends BaseController
 {
     public function indexAction(): void
     {
-        $this->requireLogin();
+        $this->requireAdmin();
 
         $q = trim($_GET['q'] ?? '');
         $page = max(1, (int)($_GET['page'] ?? 1));
@@ -29,14 +29,15 @@ class ThanhToanController extends BaseController
 
     public function createAction(): void
     {
-        $this->requireLogin();
+        $this->requireAdmin();
 
         $error = null;
         $invoices = HoaDon::getPendingInvoices();
 
+        // Form data (keys match form field names)
         $data = [
             'invoice_id' => '',
-            'thanhtoan_method' => 'cash',
+            'payment_method' => 'cash',
             'amount' => '',
             'paid_at' => date('Y-m-d H:i:s'),
             'bank_ref' => '',
@@ -57,7 +58,8 @@ class ThanhToanController extends BaseController
             } else {
                 $thanhtoanData = [
                     'invoice_id' => $data['invoice_id'],
-                    'thanhtoan_method' => $data['thanhtoan_method'],
+                    // Lưu xuống DB với tên cột hiện tại
+                    'thanhtoan_method' => $data['payment_method'],
                     'amount' => $amount,
                     'paid_at' => $data['paid_at'],
                     'bank_ref' => $data['bank_ref'],
@@ -79,7 +81,7 @@ class ThanhToanController extends BaseController
 
     public function viewAction(): void
     {
-        $this->requireLogin();
+        $this->requireAdmin();
 
         $id = (int)($_GET['id'] ?? 0);
         $thanhtoan = $id ? ThanhToan::find($id) : null;
@@ -98,7 +100,7 @@ class ThanhToanController extends BaseController
 
     public function editAction(): void
     {
-        $this->requireLogin();
+        $this->requireAdmin();
 
         $id = (int)($_GET['id'] ?? 0);
         $thanhtoan = $id ? ThanhToan::find($id) : null;
@@ -112,9 +114,10 @@ class ThanhToanController extends BaseController
         $error = null;
         $invoices = HoaDon::getPendingInvoices();
 
+        // Form data (keys match form field names)
         $data = [
             'invoice_id' => (string)$thanhtoan['invoice_id'],
-            'thanhtoan_method' => (string)$thanhtoan['thanhtoan_method'],
+            'payment_method' => (string)$thanhtoan['thanhtoan_method'],
             'amount' => (string)$thanhtoan['amount'],
             'paid_at' => substr($thanhtoan['paid_at'], 0, 16),
             'bank_ref' => (string)($thanhtoan['bank_ref'] ?? ''),
@@ -135,7 +138,7 @@ class ThanhToanController extends BaseController
             } else {
                 $thanhtoanData = [
                     'invoice_id' => $data['invoice_id'],
-                    'thanhtoan_method' => $data['thanhtoan_method'],
+                    'thanhtoan_method' => $data['payment_method'],
                     'amount' => $amount,
                     'paid_at' => $data['paid_at'],
                     'bank_ref' => $data['bank_ref'],
@@ -158,7 +161,7 @@ class ThanhToanController extends BaseController
 
     public function deleteAction(): void
     {
-        $this->requireLogin();
+        $this->requireAdmin();
 
         $id = (int)($_GET['id'] ?? 0);
         if ($id) {
@@ -173,7 +176,7 @@ class ThanhToanController extends BaseController
      */
     public function searchAutocompleteAction(): void
     {
-        $this->requireLogin();
+        $this->requireAdmin();
 
         header('Content-Type: application/json; charset=utf-8');
 

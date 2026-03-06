@@ -290,9 +290,15 @@ class HoaDon
         $year = date('Y');
         $month = date('m');
         
-        $stmt = $pdo->prepare("SELECT COUNT(*) FROM invoices WHERE year = :year AND month = :month");
-        $stmt->execute(['year' => $year, 'month' => $month]);
-        $count = (int)$stmt->fetchColumn() + 1;
+        // Tìm mã lớn nhất trong tháng để tránh trùng lặp
+        $stmt = $pdo->prepare("SELECT MAX(CAST(SUBSTRING(invoice_code, 9) AS UNSIGNED)) as max_num 
+                                FROM invoices 
+                                WHERE year = :year AND month = :month 
+                                AND invoice_code LIKE :pattern");
+        $pattern = "PT{$year}{$month}%";
+        $stmt->execute(['year' => $year, 'month' => $month, 'pattern' => $pattern]);
+        $result = $stmt->fetch();
+        $count = ((int)$result['max_num'] ?? 0) + 1;
         
         return sprintf("PT%s%s%04d", $year, $month, $count);
     }
